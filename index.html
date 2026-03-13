@@ -225,7 +225,10 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <div class="form-group"><label class="form-label">Brand</label><select class="form-control" id="in-brand" onchange="onBrandChange()"><option value="">— Select brand —</option></select></div>
           <div class="form-group"><label class="form-label">Thickness (mm)</label><select class="form-control" id="in-thick" onchange="onThickChange()"><option value="">— Select —</option></select></div>
           <div class="form-group"><label class="form-label">Size</label><select class="form-control" id="in-size" onchange="onSizeChange()"><option value="">— Select —</option></select></div>
-          <div class="form-group"><label class="form-label">Material Code</label><input class="form-control mono" id="in-matcode" readonly placeholder="Auto-generated"></div>
+          <div class="form-group"><label class="form-label">Material Code</label>
+            <input class="form-control mono" id="in-matcode" placeholder="Auto-generated or type code"
+              onblur="onMatcodeInput()" onkeydown="if(event.key==='Enter')onMatcodeInput()" autocomplete="off">
+          </div>
           <div class="form-group"><label class="form-label">Lot / Stack No.</label><input class="form-control" id="in-lot" type="number" min="1" placeholder="e.g. 1"></div>
           <div class="form-group"><label class="form-label">Pieces (PCS)</label><input class="form-control" id="in-pcs" type="number" min="1" placeholder="0" oninput="calcInputPreview()"></div>
         </div>
@@ -433,15 +436,56 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       </div>
     </div>
     <div id="rpt-inputs" class="card" style="display:none">
-      <div class="card-header"><div class="card-title">📥 Input Transactions</div></div>
+      <div class="card-header">
+        <div class="card-title">📥 Input Transactions</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select class="form-control" id="rpt-in-f-brand" style="width:auto;font-size:12px" onchange="applyInputFilters()"><option value="">All Brands</option></select>
+          <select class="form-control" id="rpt-in-f-size" style="width:auto;font-size:12px" onchange="applyInputFilters()"><option value="">All Sizes</option></select>
+          <select class="form-control" id="rpt-in-f-thick" style="width:auto;font-size:12px" onchange="applyInputFilters()"><option value="">All Thickness</option></select>
+          <select class="form-control" id="rpt-in-sort" style="width:auto;font-size:12px" onchange="applyInputFilters()">
+            <option value="ts-desc">⬇ Time (newest)</option><option value="ts-asc">⬆ Time (oldest)</option>
+            <option value="pcs-desc">⬇ PCS In</option><option value="pcs-asc">⬆ PCS In</option>
+            <option value="brand-asc">A→Z Brand</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="clearInputFilters()">✕ Clear</button>
+        </div>
+      </div>
       <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS In</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-inputs-tbody"><tr class="empty-row"><td colspan="11">Load a date range above</td></tr></tbody></table></div>
     </div>
     <div id="rpt-outputs" class="card" style="display:none">
-      <div class="card-header"><div class="card-title">📤 Output Transactions</div></div>
+      <div class="card-header">
+        <div class="card-title">📤 Output Transactions</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select class="form-control" id="rpt-out-f-brand" style="width:auto;font-size:12px" onchange="applyOutputFilters()"><option value="">All Brands</option></select>
+          <select class="form-control" id="rpt-out-f-size" style="width:auto;font-size:12px" onchange="applyOutputFilters()"><option value="">All Sizes</option></select>
+          <select class="form-control" id="rpt-out-f-thick" style="width:auto;font-size:12px" onchange="applyOutputFilters()"><option value="">All Thickness</option></select>
+          <select class="form-control" id="rpt-out-sort" style="width:auto;font-size:12px" onchange="applyOutputFilters()">
+            <option value="ts-desc">⬇ Time (newest)</option><option value="ts-asc">⬆ Time (oldest)</option>
+            <option value="pcs-desc">⬇ PCS Out</option><option value="pcs-asc">⬆ PCS Out</option>
+            <option value="brand-asc">A→Z Brand</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="clearOutputFilters()">✕ Clear</button>
+        </div>
+      </div>
       <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS Out</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-outputs-tbody"><tr class="empty-row"><td colspan="11">Load a date range above</td></tr></tbody></table></div>
     </div>
     <div id="rpt-history" class="card" style="display:none">
-      <div class="card-header"><div class="card-title">📋 All Transactions (chronological)</div></div>
+      <div class="card-header">
+        <div class="card-title">📋 All Transactions (chronological)</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select class="form-control" id="rpt-hist-f-brand" style="width:auto;font-size:12px" onchange="applyHistoryFilters()"><option value="">All Brands</option></select>
+          <select class="form-control" id="rpt-hist-f-size" style="width:auto;font-size:12px" onchange="applyHistoryFilters()"><option value="">All Sizes</option></select>
+          <select class="form-control" id="rpt-hist-f-thick" style="width:auto;font-size:12px" onchange="applyHistoryFilters()"><option value="">All Thickness</option></select>
+          <select class="form-control" id="rpt-hist-f-type" style="width:auto;font-size:12px" onchange="applyHistoryFilters()">
+            <option value="">All Types</option><option value="INPUT">Input Only</option><option value="OUTPUT">Output Only</option>
+          </select>
+          <select class="form-control" id="rpt-hist-sort" style="width:auto;font-size:12px" onchange="applyHistoryFilters()">
+            <option value="ts-asc">⬆ Time (oldest)</option><option value="ts-desc">⬇ Time (newest)</option>
+            <option value="pcs-desc">⬇ PCS</option><option value="brand-asc">A→Z Brand</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="clearHistoryFilters()">✕ Clear</button>
+        </div>
+      </div>
       <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>Type</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-history-tbody"><tr class="empty-row"><td colspan="12">Load a date range above</td></tr></tbody></table></div>
     </div>
   </div>
@@ -657,6 +701,43 @@ function filterMasterBySloc(){updateMaterialCodePreview();}
 function onBrandChange(){updateMaterialCodePreview();}
 function onThickChange(){updateMaterialCodePreview();}
 function onSizeChange(){updateMaterialCodePreview();}
+
+// Reverse-lookup: typed material code → fill brand/thickness/size dropdowns
+// Code format: [4-char initials][2-digit thickness][5-char size] = 11 chars total
+function onMatcodeInput(){
+  const typed=document.getElementById('in-matcode').value.trim().toUpperCase();
+  if(!typed){calcInputPreview();return;}
+  if(typed.length!==11){showToast('Material code must be 11 characters (e.g. PAAP3008040)','error');return;}
+
+  const initials=typed.slice(0,4);          // e.g. PAAP
+  const thickRaw=typed.slice(4,6);          // e.g. 30  → thickness = 30
+  const sizeRaw=typed.slice(6);             // e.g. 08040 → size = 8040 or 08040
+
+  const thickNum=String(Number(thickRaw));  // strip leading zero: "06"→"6", "30"→"30"
+
+  // Find brand from any master row with matching initials
+  const brandRow=masterRows.find(r=>String(r.MATERIAL_CODE_INITIALS||'').trim().toUpperCase()===initials);
+  // Find thickness from any master row where THICKNESS matches
+  const thickRow=masterRows.find(r=>String(r.THICKNESS||'').trim()===thickNum);
+  // Find size from any master row where SIZE matches (try padded and unpadded)
+  const sizeRow=masterRows.find(r=>String(r.SIZE||'').trim()===sizeRaw||String(r.SIZE||'').trim()===String(Number(sizeRaw)));
+
+  if(!brandRow){showToast('Initials "'+initials+'" not found in master','error');return;}
+  if(!thickRow){showToast('Thickness "'+thickNum+'mm" not found in master','error');return;}
+  if(!sizeRow){showToast('Size "'+sizeRaw+'" not found in master','error');return;}
+
+  const brand=brandRow.BRAND||'';
+  const thick=String(thickRow.THICKNESS||'');
+  const size=String(sizeRow.SIZE||'');
+
+  document.getElementById('in-brand').value=brand;
+  document.getElementById('in-thick').value=thick;
+  document.getElementById('in-size').value=size;
+  // Recompute canonical code from matched parts
+  document.getElementById('in-matcode').value=initials+thickRaw+sizeRow.SIZE.toString().padStart(5,'0');
+  calcInputPreview();
+  showToast('✓ Matched: '+brand+' · '+thick+'mm · '+size,'success');
+}
 
 function findMasterRow(brand,thick,size){
   return masterRows.find(r=>(!brand||r.BRAND===brand)&&(!thick||String(r.THICKNESS||'')===thick)&&(!size||String(r.SIZE||'')===size))||null;
@@ -980,10 +1061,11 @@ function renderReports(data){
   const rThicks=[...new Set(stock.map(r=>String(r.THICKNESS||'')).filter(Boolean))].sort((a,b)=>+a-+b);
   fillSelect('rpt-f-brand',rBrands,'All Brands');fillSelect('rpt-f-size',rSizes,'All Sizes');fillSelect('rpt-f-thick',rThicks,'All Thickness');
   renderReportSummaryTable(stock);
-  document.getElementById('rpt-inputs-tbody').innerHTML=inputs.length===0?'<tr class="empty-row"><td colspan="11">No inputs in range</td></tr>':inputs.map(r=>`<tr><td class="mono" style="font-size:11px">${r.Timestamp||'—'}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-green">${Number(r.PIECES_IN||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
-  document.getElementById('rpt-outputs-tbody').innerHTML=outputs.length===0?'<tr class="empty-row"><td colspan="11">No outputs in range</td></tr>':outputs.map(r=>`<tr><td class="mono" style="font-size:11px">${r.Timestamp||'—'}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-red">${Number(r.PCS_OUT||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+  reportInputsCache=inputs;reportOutputsCache=outputs;
   const merged=data._transactions&&data._transactions.length>0?data._transactions:[...inputs.map(r=>({...r,TYPE:'INPUT',PCS:r.PIECES_IN})),...outputs.map(r=>({...r,TYPE:'OUTPUT',PCS:r.PCS_OUT}))].sort((a,b)=>String(a.Timestamp).localeCompare(String(b.Timestamp)));
-  document.getElementById('rpt-history-tbody').innerHTML=merged.length===0?'<tr class="empty-row"><td colspan="12">No transactions in range</td></tr>':merged.map(r=>{const type=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');const pcs=type==='INPUT'?Number(r.PIECES_IN||r.PCS||0):Number(r.PCS_OUT||r.PCS||0);return`<tr><td class="mono" style="font-size:11px">${r.Timestamp||'—'}</td><td><span class="badge ${type==='INPUT'?'badge-green':'badge-red'}">${type}</span></td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num ${type==='INPUT'?'num-green':'num-red'}">${pcs}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`;}).join('');
+  reportHistoryCache=merged;
+  fillReportSubFilters(inputs,outputs,merged);
+  applyInputFilters();applyOutputFilters();applyHistoryFilters();
   showReportView(currentReportView);
 }
 
@@ -1012,6 +1094,70 @@ function applyReportFilters(){
   renderReportSummaryTable(reportStockCache.filter(r=>(!brand||r.BRAND===brand)&&(!size||String(r.SIZE||'')===size)&&(!thick||String(r.THICKNESS||'')===thick)));
 }
 function clearReportFilters(){['rpt-f-brand','rpt-f-size','rpt-f-thick'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});renderReportSummaryTable(reportStockCache);}
+
+// ── REPORT INPUTS/OUTPUTS/HISTORY FILTER+SORT ─────────────────
+let reportInputsCache=[];let reportOutputsCache=[];let reportHistoryCache=[];
+
+function fillReportSubFilters(inputs,outputs,merged){
+  const allBrands=[...new Set([...inputs,...outputs].map(r=>r.BRAND).filter(Boolean))].sort();
+  const allSizes=[...new Set([...inputs,...outputs].map(r=>String(r.SIZE||'')).filter(Boolean))].sort();
+  const allThicks=[...new Set([...inputs,...outputs].map(r=>String(r.THICKNESS||'')).filter(Boolean))].sort((a,b)=>+a-+b);
+  ['rpt-in-f-brand','rpt-out-f-brand','rpt-hist-f-brand'].forEach(id=>fillSelect(id,allBrands,'All Brands'));
+  ['rpt-in-f-size','rpt-out-f-size','rpt-hist-f-size'].forEach(id=>fillSelect(id,allSizes,'All Sizes'));
+  ['rpt-in-f-thick','rpt-out-f-thick','rpt-hist-f-thick'].forEach(id=>fillSelect(id,allThicks,'All Thickness'));
+}
+
+function sortRows(rows,sortVal,pcsField){
+  const s=rows.slice();
+  if(sortVal==='ts-asc')s.sort((a,b)=>String(a.Timestamp).localeCompare(String(b.Timestamp)));
+  else if(sortVal==='ts-desc')s.sort((a,b)=>String(b.Timestamp).localeCompare(String(a.Timestamp)));
+  else if(sortVal==='pcs-desc')s.sort((a,b)=>Number(b[pcsField]||0)-Number(a[pcsField]||0));
+  else if(sortVal==='pcs-asc')s.sort((a,b)=>Number(a[pcsField]||0)-Number(b[pcsField]||0));
+  else if(sortVal==='brand-asc')s.sort((a,b)=>String(a.BRAND||'').localeCompare(String(b.BRAND||'')));
+  return s;
+}
+
+function renderInputRows(rows){
+  document.getElementById('rpt-inputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No inputs match filters</td></tr>':rows.map(r=>`<tr><td class="mono" style="font-size:11px">${r.Timestamp||'—'}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-green">${Number(r.PIECES_IN||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+}
+function renderOutputRows(rows){
+  document.getElementById('rpt-outputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No outputs match filters</td></tr>':rows.map(r=>`<tr><td class="mono" style="font-size:11px">${r.Timestamp||'—'}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-red">${Number(r.PCS_OUT||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+}
+function renderHistoryRows(rows){
+  document.getElementById('rpt-history-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="12">No transactions match filters</td></tr>':rows.map(r=>{const type=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');const pcs=type==='INPUT'?Number(r.PIECES_IN||r.PCS||0):Number(r.PCS_OUT||r.PCS||0);return`<tr><td class="mono" style="font-size:11px">${r.Timestamp||'—'}</td><td><span class="badge ${type==='INPUT'?'badge-green':'badge-red'}">${type}</span></td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num ${type==='INPUT'?'num-green':'num-red'}">${pcs}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`;}).join('');
+}
+
+function applyInputFilters(){
+  const brand=document.getElementById('rpt-in-f-brand')?.value||'';
+  const size=document.getElementById('rpt-in-f-size')?.value||'';
+  const thick=document.getElementById('rpt-in-f-thick')?.value||'';
+  const sort=document.getElementById('rpt-in-sort')?.value||'ts-desc';
+  let rows=reportInputsCache.filter(r=>(!brand||r.BRAND===brand)&&(!size||String(r.SIZE||'')===size)&&(!thick||String(r.THICKNESS||'')===thick));
+  renderInputRows(sortRows(rows,sort,'PIECES_IN'));
+}
+function clearInputFilters(){['rpt-in-f-brand','rpt-in-f-size','rpt-in-f-thick'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const s=document.getElementById('rpt-in-sort');if(s)s.value='ts-desc';applyInputFilters();}
+
+function applyOutputFilters(){
+  const brand=document.getElementById('rpt-out-f-brand')?.value||'';
+  const size=document.getElementById('rpt-out-f-size')?.value||'';
+  const thick=document.getElementById('rpt-out-f-thick')?.value||'';
+  const sort=document.getElementById('rpt-out-sort')?.value||'ts-desc';
+  let rows=reportOutputsCache.filter(r=>(!brand||r.BRAND===brand)&&(!size||String(r.SIZE||'')===size)&&(!thick||String(r.THICKNESS||'')===thick));
+  renderOutputRows(sortRows(rows,sort,'PCS_OUT'));
+}
+function clearOutputFilters(){['rpt-out-f-brand','rpt-out-f-size','rpt-out-f-thick'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const s=document.getElementById('rpt-out-sort');if(s)s.value='ts-desc';applyOutputFilters();}
+
+function applyHistoryFilters(){
+  const brand=document.getElementById('rpt-hist-f-brand')?.value||'';
+  const size=document.getElementById('rpt-hist-f-size')?.value||'';
+  const thick=document.getElementById('rpt-hist-f-thick')?.value||'';
+  const type=document.getElementById('rpt-hist-f-type')?.value||'';
+  const sort=document.getElementById('rpt-hist-sort')?.value||'ts-asc';
+  let rows=reportHistoryCache.filter(r=>{const rt=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');return(!brand||r.BRAND===brand)&&(!size||String(r.SIZE||'')===size)&&(!thick||String(r.THICKNESS||'')===thick)&&(!type||rt===type);});
+  const pField=rows.length>0?'PCS':'PIECES_IN';
+  renderHistoryRows(sortRows(rows,sort,pField));
+}
+function clearHistoryFilters(){['rpt-hist-f-brand','rpt-hist-f-size','rpt-hist-f-thick','rpt-hist-f-type'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const s=document.getElementById('rpt-hist-sort');if(s)s.value='ts-asc';applyHistoryFilters();}
 
 // ── RECENT INPUTS ────────────────────────────────────────────
 function initRecentInputs(){
@@ -1231,7 +1377,7 @@ const MASTER_COLUMNS=[
    extra:['Sqmtr'],
    fields:[{key:'SIZE',label:'Size',type:'text',placeholder:'e.g. 8040'},{key:'Sqmtr',label:'Sqmtr / sheet',type:'number',placeholder:'e.g. 2.9768',step:'0.0001'}]},
   {key:'MATERIAL_CODE',label:'🔢 Material Codes + Min Stock + Alert Emails',color:'#dc2626',textColor:'#fff',
-   desc:'Edit min stock & alert emails per material code row. Material code is auto-generated (read display only).',
+   desc:'Edit material code, min stock &amp; alert emails. Material code changes cascade to CurrentStock &amp; Inputs sheets.',
    combined:true, fields:[]},
   {key:'DAILY_EMAIL',label:'📧 Daily Email',color:'#0f766e',textColor:'#fff',desc:'Daily summary report recipients',
    fields:[{key:'DAILY_EMAIL',label:'Daily Email',type:'email',placeholder:'director@company.com'}]},
@@ -1325,7 +1471,7 @@ function renderMasterSections(data){
         const e1=em1Map[row]||'';const e2=em2Map[row]||'';const e3=em3Map[row]||'';
         return`<tr>
           <td style="color:var(--muted);font-size:12px">${i+1}</td>
-          <td><span class="badge badge-code">${v.value}</span><div style="font-size:10px;color:var(--muted);margin-top:2px">J${row}</div></td>
+          <td>${editCell('MATERIAL_CODE',row,v.value,'text','130px')}<div style="font-size:10px;color:var(--muted);margin-top:2px">J${row}</div></td>
           <td>${editCell('MIN_STOCK',row,min,'number','80px')}</td>
           <td>${editCell('ALERT_EMAIL_1',row,e1,'email','170px')}</td>
           <td>${editCell('ALERT_EMAIL_2',row,e2,'email','170px')}</td>
@@ -1347,7 +1493,7 @@ function renderMasterSections(data){
             <tbody>${tRows||'<tr class="empty-row"><td colspan="6">No material codes found in MasterData</td></tr>'}</tbody>
           </table>
         </div>
-        <div style="padding:8px 16px;font-size:11px;color:var(--muted);border-top:1px solid var(--border2)">${mcVals.length} material code rows · Min Stock sets alert threshold · Alert Emails receive low-stock notifications</div>
+        <div style="padding:8px 16px;font-size:11px;color:var(--muted);border-top:1px solid var(--border2)">${mcVals.length} material code rows · Material Code, Min Stock &amp; Alert Emails are all editable · Material code changes also update CurrentStock and Inputs sheets</div>
       </div>`;
 
       section.innerHTML=html;container.appendChild(section);
