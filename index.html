@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!--
+  PLYWOOD INVENTORY DASHBOARD v22
+  MASTER PASSWORD ACCESS: Master password can now access all screens
+-->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -25,21 +29,65 @@
 body{font-family:'IBM Plex Sans','Calibri',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
 #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1c1917 0%,#292524 50%,#1c1917 100%);position:relative;overflow:hidden;}
 #loginScreen::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 30% 40%,rgba(217,119,6,0.15) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 80% 70%,rgba(217,119,6,0.08) 0%,transparent 60%);}
-.login-card{background:#fff;border-radius:var(--r-xl);padding:48px 48px 40px;width:420px;box-shadow:var(--shadow-lg),0 0 0 1px rgba(0,0,0,.05);position:relative;z-index:1;}
-.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:36px;}
-.login-logo-icon{width:48px;height:48px;background:#1c1917;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:22px;}
-.login-logo-text{font-size:22px;font-weight:700;color:#1c1917;letter-spacing:-0.3px;}
-.login-logo-text span{color:var(--amber);}
-.login-company{font-size:11px;font-weight:600;color:var(--amber);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;text-align:center;}
-.login-location{font-size:10px;color:var(--muted);text-align:center;margin-bottom:24px;}
-.login-title{font-size:26px;font-weight:700;color:#1c1917;margin-bottom:6px;}
-.login-sub{font-size:13px;color:var(--muted);margin-bottom:32px;}
+.ls-wrap{display:flex;flex-direction:column;align-items:center;gap:28px;position:relative;z-index:1;padding:24px 16px;width:100%;max-width:680px;}
+.ls-brand{text-align:center;}
+.ls-brand-logo{font-size:28px;font-weight:700;color:#fff;letter-spacing:-0.3px;margin-bottom:4px;}
+.ls-brand-logo span{color:var(--amber);}
+.ls-brand-company{font-size:11px;font-weight:600;color:var(--amber);letter-spacing:0.1em;text-transform:uppercase;}
+.ls-brand-loc{font-size:10px;color:#78716c;margin-top:2px;}
+.ls-icons{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;width:100%;}
+.ls-icon-btn{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 16px 20px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.ls-icon-btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s;}
+.ls-icon-btn:hover{border-color:rgba(217,119,6,.6);background:rgba(217,119,6,.1);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.3);}
+.ls-icon-btn:hover::before{opacity:1;}
+.ls-icon-btn.active-btn{border-color:var(--amber);background:rgba(217,119,6,.18);box-shadow:0 0 0 2px rgba(217,119,6,.3);}
+.ls-icon-emoji{font-size:36px;line-height:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3));}
+.ls-icon-label{font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#e7e5e4;}
+.ls-icon-sub{font-size:10px;color:#78716c;text-align:center;line-height:1.3;}
+.ls-pw-box{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:24px 28px;width:100%;max-width:380px;backdrop-filter:blur(8px);}
+.ls-pw-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.ls-pw-hint{font-size:11px;color:#78716c;margin-bottom:18px;}
+.ls-pw-row{display:flex;gap:10px;align-items:center;}
+.ls-pw-input{flex:1;padding:11px 14px;border:1.5px solid rgba(255,255,255,.15);border-radius:8px;font-family:inherit;font-size:14px;color:#fff;background:rgba(255,255,255,.08);outline:none;transition:border-color .15s,box-shadow .15s;}
+.ls-pw-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(217,119,6,.2);}
+.ls-pw-input::placeholder{color:#57534e;}
+/* User select dropdown specific styles */
+select.ls-pw-input{
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e7e5e4' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  padding-right:36px;
+}
+select.ls-pw-input option{
+  background:#292524;
+  color:#fff;
+  padding:8px;
+}
+select.ls-pw-input:disabled{
+  opacity:0.7;
+  cursor:wait !important;
+}
+.ls-user-label{
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.08em;
+  color:#e7e5e4;
+  text-transform:uppercase;
+  margin-bottom:6px;
+  display:block;
+}
+.ls-pw-btn{padding:11px 20px;background:var(--amber);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s;}
+.ls-pw-btn:hover{background:#b45309;}
+.ls-pw-btn:disabled{background:#57534e;cursor:not-allowed;}
+.ls-error{background:rgba(220,38,38,.15);color:#fca5a5;border:1px solid rgba(220,38,38,.3);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:500;margin-top:12px;display:none;}
 .field-label{font-size:11px;font-weight:600;letter-spacing:0.08em;color:var(--text2);text-transform:uppercase;margin-bottom:6px;display:block;}
 .field-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-family:inherit;font-size:14px;color:var(--text);background:var(--surface);transition:border-color .15s,box-shadow .15s;outline:none;}
 .field-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(217,119,6,.12);}
 .btn-primary{width:100%;padding:12px;background:#1c1917;color:#fff;border:none;border-radius:var(--r-sm);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;margin-top:20px;transition:background .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;}
 .btn-primary:hover{background:#292524;}.btn-primary:active{transform:scale(.99);}.btn-primary:disabled{background:var(--muted);cursor:not-allowed;}
 .login-error{background:var(--red-lt);color:var(--red);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;font-weight:500;margin-top:12px;display:none;}
+@media(max-width:560px){.ls-icons{grid-template-columns:repeat(2,1fr);}.ls-icon-emoji{font-size:28px;}.ls-pw-box{padding:20px 18px;}}
 #app{display:none;}
 .topbar{height:56px;background:#1c1917;display:flex;align-items:center;padding:0 24px;gap:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
 .topbar-logo{font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.2px;margin-right:32px;flex-shrink:0;}
@@ -157,26 +205,62 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 <body>
 
 <div id="loginScreen">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="login-logo-icon">🪵</div>
-      <div class="login-logo-text">Ply<span>Stock</span> Tracker</div>
+  <div class="ls-wrap">
+    <!-- Brand -->
+    <div class="ls-brand">
+      <div class="ls-brand-logo">🪵 Ply<span>Stock</span> Tracker</div>
+      <div class="ls-brand-company">Century Plyboards (India) Limited</div>
+      <div class="ls-brand-loc">Chennai</div>
     </div>
-    <div class="login-company">Century Plyboards (India) Limited</div>
-    <div class="login-location">Chennai</div>
-    <div class="login-title">Welcome back</div>
-    <div class="login-sub">Sign in to your stock dashboard</div>
-    <label class="field-label" for="loginUser">User</label>
-    <select class="field-input" id="loginUser" style="cursor:pointer">
-      <option value="">Loading users...</option>
-    </select>
-    <label class="field-label" for="loginPass" style="margin-top:16px">Password</label>
-    <input class="field-input" id="loginPass" type="password" placeholder="Enter password…"
-           onkeydown="if(event.key==='Enter') doLogin()">
-    <button class="btn-primary" onclick="doLogin()" id="loginBtn">
-      <span id="loginBtnText">Sign in</span>
-    </button>
-    <div class="login-error" id="loginError"></div>
+
+    <!-- 4 section icons -->
+    <div class="ls-icons">
+      <div class="ls-icon-btn" id="ls-btn-input" onclick="selectSection('input')">
+        <div class="ls-icon-emoji">📥</div>
+        <div class="ls-icon-label">Input</div>
+        <div class="ls-icon-sub">Add stock</div>
+      </div>
+      <div class="ls-icon-btn" id="ls-btn-output" onclick="selectSection('output')">
+        <div class="ls-icon-emoji">📤</div>
+        <div class="ls-icon-label">Output</div>
+        <div class="ls-icon-sub">Dispatch stock</div>
+      </div>
+      <div class="ls-icon-btn" id="ls-btn-reports" onclick="selectSection('reports')">
+        <div class="ls-icon-emoji">📊</div>
+        <div class="ls-icon-label">Reports</div>
+        <div class="ls-icon-sub">Any password</div>
+      </div>
+      <div class="ls-icon-btn" id="ls-btn-master" onclick="selectSection('master')">
+        <div class="ls-icon-emoji">🗂️</div>
+        <div class="ls-icon-label">Master</div>
+        <div class="ls-icon-sub">Configurations</div>
+      </div>
+    </div>
+
+    <!-- Password box (shown after selecting a section) -->
+    <div class="ls-pw-box" id="ls-pw-box" style="display:none">
+      <div class="ls-pw-title">
+        <span id="ls-pw-icon">🔑</span>
+        <span id="ls-pw-title-txt">Enter Password</span>
+      </div>
+      <div class="ls-pw-hint" id="ls-pw-hint">Select your name and enter password</div>
+      
+      <!-- User selection dropdown -->
+      <div style="margin-bottom:14px">
+        <label class="ls-user-label">👤 Who are you?</label>
+        <select class="ls-pw-input" id="ls-user-select" style="width:100%;cursor:pointer">
+          <option value="">— Select User —</option>
+        </select>
+      </div>
+      
+      <!-- Password input -->
+      <div class="ls-pw-row">
+        <input class="ls-pw-input" id="ls-pw-input" type="password" placeholder="Password…"
+               onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="ls-pw-btn" id="ls-pw-btn" onclick="doLogin()">Enter →</button>
+      </div>
+      <div class="ls-error" id="loginError"></div>
+    </div>
   </div>
 </div>
 
@@ -555,7 +639,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 <div id="toastContainer"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwj6p4QzahYVNRTyz9jyv8dVPsWCfpWMr_K2RAmbuTob81FAucI-o2zVxEi9zvHPdlujg/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEiMZCGBopQiVDlSc9JoLSu1ViJ8Teg6EGsAh_eS8AYbY0oL5O6xeTxnUMezk6n9aUCw/exec';
 
 let masterRows=[],stockRows=[],inventoryRows=[],filteredInv=[],selectedLot=null,pendingRows=[],summaryCache=null;
 let thresholdMap={},stockByCodeMap={},thresholdsReady=false;
@@ -587,54 +671,178 @@ function showToast(msg,type='info'){
 }
 
 // ── LOGIN ────────────────────────────────────────────────────
-async function loadUsers(){
+// sectionPassMap: which password cell each section uses (A2/A3/A4)
+// A2 = input, A3 = output (was master before), A4 = master
+// Reports: any of the three valid passwords works
+let selectedSection = '';
+
+const SECTION_META = {
+  input:   { icon:'📥', label:'Stock Input',   hint:'Password from sheet A2',  color:'#059669' },
+  output:  { icon:'📤', label:'Stock Output',  hint:'Password from sheet A3',  color:'#d97706' },
+  reports: { icon:'📊', label:'Reports',       hint:'Any valid password works', color:'#2563eb' },
+  master:  { icon:'🗂️', label:'Master Data',   hint:'Password from sheet A4',  color:'#7c3aed' }
+};
+
+function selectSection(name){
+  selectedSection = name;
+  // Highlight selected icon
+  ['input','output','reports','master'].forEach(s=>{
+    document.getElementById('ls-btn-'+s).classList.toggle('active-btn', s===name);
+  });
+  const meta = SECTION_META[name];
+  document.getElementById('ls-pw-icon').textContent     = meta.icon;
+  document.getElementById('ls-pw-title-txt').textContent = 'Enter Password — '+meta.label;
+  document.getElementById('ls-pw-hint').textContent      = 'Select your name and enter password';
+  document.getElementById('ls-pw-btn').style.background  = meta.color;
+  document.getElementById('loginError').style.display    = 'none';
+  document.getElementById('ls-pw-input').value           = '';
+  document.getElementById('ls-user-select').value        = '';
+  document.getElementById('ls-pw-box').style.display     = 'block';
+  
+  // Show loading on label while users load
+  const userLabel = document.querySelector('.ls-user-label');
+  if(userLabel) userLabel.textContent = '👤 Loading users...';
+  
+  // Load users from MasterData
+  loadUsersDropdown().then(() => {
+    // Restore label after loading
+    if(userLabel) userLabel.textContent = '👤 Who are you?';
+  });
+  
+  setTimeout(()=>document.getElementById('ls-user-select').focus(), 80);
+}
+
+async function loadUsersDropdown(){
+  const sel = document.getElementById('ls-user-select');
+  
+  // Show loading state
+  sel.innerHTML = '<option value="">⟳ Loading users...</option>';
+  sel.disabled = true;
+  sel.style.cursor = 'wait';
+  
   try{
-    const sel=document.getElementById('loginUser');
-    sel.innerHTML='<option value="">Loading users...</option>';
-    const data=await api('getMasterUsers',{});
-    const users=data.users||[];
-    sel.innerHTML='<option value="">Select user...</option>';
-    if(users.length===0){sel.innerHTML+='<option value="" disabled>No users configured</option>';return;}
-    users.forEach(u=>{if(u&&u.trim()){const o=document.createElement('option');o.value=u.trim();o.textContent=u.trim();sel.appendChild(o);}});
-  }catch(e){document.getElementById('loginUser').innerHTML='<option value="">Error loading users</option>';}
+    const result = await api('getMasterUsers');
+    const users = result.users || [];
+    
+    // Populate with actual users
+    sel.innerHTML = '<option value="">— Select User —</option>';
+    users.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u;
+      opt.textContent = u;
+      sel.appendChild(opt);
+    });
+    
+    // Re-enable dropdown
+    sel.disabled = false;
+    sel.style.cursor = 'pointer';
+    
+    // Show success message if users loaded
+    if(users.length === 0){
+      sel.innerHTML = '<option value="">⚠️ No users found in MasterData</option>';
+    }
+    
+  }catch(e){
+    console.error('Failed to load users:', e);
+    sel.innerHTML = '<option value="">❌ Failed to load users</option>';
+    sel.disabled = true;
+    sel.style.cursor = 'not-allowed';
+    showToast('Failed to load user list', 'error');
+  }
 }
 
 async function doLogin(){
-  const user=document.getElementById('loginUser').value.trim();
-  const pass=document.getElementById('loginPass').value.trim();
-  const btn=document.getElementById('loginBtn');
-  const errEl=document.getElementById('loginError');
-  if(!user){errEl.style.display='block';errEl.textContent='Please select a user.';return;}
-  if(!pass){errEl.style.display='block';errEl.textContent='Please enter password.';return;}
-  btn.disabled=true;document.getElementById('loginBtnText').textContent='Signing in…';errEl.style.display='none';
+  if(!selectedSection){ return; }
+  const pass   = document.getElementById('ls-pw-input').value.trim();
+  const user   = document.getElementById('ls-user-select').value.trim();
+  const errEl  = document.getElementById('loginError');
+  const btn    = document.getElementById('ls-pw-btn');
+  
+  // Validate user selection
+  if(!user){
+    errEl.style.display='block'; 
+    errEl.textContent='Please select your name from the dropdown.'; 
+    return;
+  }
+  
+  // Validate password
+  if(!pass){ 
+    errEl.style.display='block'; 
+    errEl.textContent='Please enter a password.'; 
+    return; 
+  }
+  
+  btn.disabled=true; btn.textContent='Checking…'; errEl.style.display='none';
   try{
-    const data=await api('getAll',{password:pass,user});
-    masterRows=data.master||[];stockRows=data.stock||[];
-    inventoryRows=stockRows.filter(r=>Number(r.PIECES_REMAINING)>0);
-    summaryCache=data.summary||null;currentUser=user;
-    rebuildStockByCode();populateInputDropdowns();populateOutputDropdowns();
-    renderStockViewer();updateOutputKpis();
+    const data = await api('loginSection',{section:selectedSection, password:pass, user:user});
+    masterRows    = data.master||[];
+    stockRows     = data.stock||[];
+    inventoryRows = stockRows.filter(r=>Number(r.PIECES_REMAINING)>0);
+    summaryCache  = data.summary||null;
+    currentUser   = user;  // Use the selected user name
+    rebuildStockByCode(); populateInputDropdowns(); populateOutputDropdowns();
+    renderStockViewer(); updateOutputKpis();
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('app').style.display='block';
-    const today=data.today||new Date().toISOString().split('T')[0];
+    const today = data.today||new Date().toISOString().split('T')[0];
     document.getElementById('rpt-from').value=today;
     document.getElementById('rpt-to').value=today;
-    showToast('Welcome, '+user+'! Data loaded.','success');
+    // Show only the tab(s) this section can access
+    // If master password was used, show ALL tabs
+    applyTabVisibility(selectedSection, data.isMasterPassword);
+    switchTab(selectedSection==='reports'?'reports':selectedSection);
+    showToast('Welcome '+user+'! Logged into '+SECTION_META[selectedSection].label,'success');
     setTimeout(loadThresholds,2000);
     initRecentInputs();
   }catch(e){
     errEl.style.display='block';
-    errEl.textContent=e.message==='WRONG_PASSWORD'?'Incorrect password.':'Login failed: '+e.message;
+    if(e.message==='WRONG_PASSWORD'){
+      errEl.textContent = 'Incorrect password. Try again.';
+    } else if(e.message==='USER_REQUIRED'){
+      errEl.textContent = 'Please select your name from the dropdown.';
+    } else if(e.message==='INVALID_USER'){
+      errEl.textContent = 'Selected user not found in MasterData. Please contact admin.';
+    } else {
+      errEl.textContent = 'Login failed: '+e.message;
+    }
   }
-  btn.disabled=false;document.getElementById('loginBtnText').textContent='Sign in';
+  btn.disabled=false; btn.textContent='Enter →';
+}
+
+function applyTabVisibility(section, isMasterPassword){
+  // If master password was used, show ALL tabs
+  if(isMasterPassword){
+    ['input','output','reports','master'].forEach(t=>{
+      const tabEl = document.getElementById('tab-'+t);
+      if(tabEl) tabEl.style.display = '';
+    });
+    return;
+  }
+  
+  // Reports can always access reports tab; input/output/master see their tab + reports
+  const visible = section==='reports'
+    ? ['reports']
+    : [section, 'reports'];
+  ['input','output','reports','master'].forEach(t=>{
+    const tabEl = document.getElementById('tab-'+t);
+    if(tabEl) tabEl.style.display = visible.includes(t) ? '' : 'none';
+  });
 }
 
 function doLogout(){
   document.getElementById('loginScreen').style.display='flex';
   document.getElementById('app').style.display='none';
-  document.getElementById('loginPass').value='';
-  document.getElementById('loginUser').selectedIndex=0;
+  document.getElementById('ls-pw-input').value='';
+  document.getElementById('ls-user-select').value='';
+  document.getElementById('ls-pw-box').style.display='none';
+  ['input','output','reports','master'].forEach(s=>{
+    document.getElementById('ls-btn-'+s).classList.remove('active-btn');
+    const tabEl=document.getElementById('tab-'+s);
+    if(tabEl)tabEl.style.display='';
+  });
+  selectedSection='';
   masterRows=[];stockRows=[];inventoryRows=[];pendingRows=[];selectedLot=null;currentUser='';
+  masterUnlocked=false;
 }
 
 // ── TAB SWITCHING ────────────────────────────────────────────
@@ -1624,7 +1832,7 @@ function closeMasterAddPanel(key){const p=document.getElementById('madd-panel-'+
 
 async function saveMasterAdd(colKey){
   const colDef=MASTER_COLUMNS.find(c=>c.key===colKey);if(!colDef)return;
-  const payload={col:colKey};let primaryVal='';let allFilled=true;
+  const payload={col:colKey,user:currentUser};let primaryVal='';let allFilled=true;
   colDef.fields.forEach(f=>{
     const el=document.getElementById('madd-'+colKey+'-'+f.key);if(!el)return;
     const v=el.value.trim();if(!v){allFilled=false;showToast('Fill in: '+f.label,'error');}
@@ -1675,7 +1883,7 @@ async function confirmMasterCellEdit(col,row,origHtml){
 
 async function doUpdateMasterCell(col,row,newVal){
   try{
-    await api('updateCellEntry',{col,row:Number(row),value:newVal});
+    await api('updateCellEntry',{col,row:Number(row),value:newVal,user:currentUser});
     showToast('✓ '+col+' updated','success');
     await loadMasterData();
     if(col==='USER')await loadUsers();
@@ -1686,7 +1894,7 @@ async function doUpdateMasterCell(col,row,newVal){
 async function saveCombinedCell(col,row,newVal){
   const val=String(newVal||'').trim();
   try{
-    await api('updateCellEntry',{col,row:Number(row),value:val});
+    await api('updateCellEntry',{col,row:Number(row),value:val,user:currentUser});
     // Refresh thresholds if min stock changed
     if(col==='MIN_STOCK')setTimeout(loadThresholds,500);
     showToast('✓ '+col+' row '+row+' saved','success');
@@ -1696,19 +1904,19 @@ async function saveCombinedCell(col,row,newVal){
 function editMasterBrandRow(row,currentBrand,currentInitials){
   const nb=prompt('Edit Brand name (row '+row+'):',currentBrand);if(nb===null)return;
   const ni=prompt('Edit Code Initials (4 chars):',currentInitials);if(ni===null)return;
-  Promise.all([api('updateCellEntry',{col:'BRAND',row:Number(row),value:nb.trim()}),api('updateCellEntry',{col:'MATERIAL_CODE_INITIALS',row:Number(row),value:ni.trim().toUpperCase()})]).then(()=>{showToast('✓ Brand updated','success');loadMasterData();}).catch(e=>showToast('Update failed: '+e.message,'error'));
+  Promise.all([api('updateCellEntry',{col:'BRAND',row:Number(row),value:nb.trim(),user:currentUser}),api('updateCellEntry',{col:'MATERIAL_CODE_INITIALS',row:Number(row),value:ni.trim().toUpperCase(),user:currentUser})]).then(()=>{showToast('✓ Brand updated','success');loadMasterData();}).catch(e=>showToast('Update failed: '+e.message,'error'));
 }
 
 function editMasterThicknessRow(row,currentThick,currentCode){
   const nt=prompt('Edit Thickness (mm) (row '+row+'):',currentThick);if(nt===null)return;
   const nc=prompt('Edit Thickness Code:',currentCode);if(nc===null)return;
-  Promise.all([api('updateCellEntry',{col:'THICKNESS',row:Number(row),value:Number(nt)||nt}),api('updateCellEntry',{col:'THICKNESS_CODE',row:Number(row),value:Number(nc)||nc})]).then(()=>{showToast('✓ Thickness updated','success');loadMasterData();}).catch(e=>showToast('Update failed: '+e.message,'error'));
+  Promise.all([api('updateCellEntry',{col:'THICKNESS',row:Number(row),value:Number(nt)||nt,user:currentUser}),api('updateCellEntry',{col:'THICKNESS_CODE',row:Number(row),value:Number(nc)||nc,user:currentUser})]).then(()=>{showToast('✓ Thickness updated','success');loadMasterData();}).catch(e=>showToast('Update failed: '+e.message,'error'));
 }
 
 function editMasterSizeRow(row,currentSize,currentSqmtr){
   const ns=prompt('Edit Size (row '+row+'):',currentSize);if(ns===null)return;
   const nq=prompt('Edit Sqmtr/sheet:',currentSqmtr);if(nq===null)return;
-  Promise.all([api('updateCellEntry',{col:'SIZE',row:Number(row),value:ns.trim()}),api('updateCellEntry',{col:'Sqmtr',row:Number(row),value:parseFloat(nq)||0})]).then(()=>{showToast('✓ Size updated','success');loadMasterData();}).catch(e=>showToast('Update failed: '+e.message,'error'));
+  Promise.all([api('updateCellEntry',{col:'SIZE',row:Number(row),value:ns.trim(),user:currentUser}),api('updateCellEntry',{col:'Sqmtr',row:Number(row),value:parseFloat(nq)||0,user:currentUser})]).then(()=>{showToast('✓ Size updated','success');loadMasterData();}).catch(e=>showToast('Update failed: '+e.message,'error'));
 }
 
 // DELETE: shows ONLY the value from that specific column (FIXED BUG)
@@ -1720,7 +1928,7 @@ async function deleteMasterCell(col,row,currentVal){
   );
   if(!confirmed)return;
   try{
-    await api('deleteCellEntry',{col,row:Number(row)});
+    await api('deleteCellEntry',{col,row:Number(row),user:currentUser});
     showToast('✓ '+col+' entry cleared','success');
     if(col==='USER')await loadUsers();
     await loadMasterData();
