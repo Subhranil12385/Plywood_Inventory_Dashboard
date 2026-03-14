@@ -639,12 +639,23 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 <div id="toastContainer"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyk-zdBDWwcPphaiLwChF1_x-g3ocix7ae3SDS4CLSgfx990rZ8iBHiLsuLSBG1u6ucQg/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZWKYimG0kg6DYAXMj0GWrXQQ-lzIH2FI1CqJVRXr7WaQ2EW1ThgOb1CuBpIwhrhNITg/exec';
 
 let masterRows=[],stockRows=[],inventoryRows=[],filteredInv=[],selectedLot=null,pendingRows=[],summaryCache=null;
 let thresholdMap={},stockByCodeMap={},thresholdsReady=false;
 let currentReportView='summary';
 let currentUser='';
+
+
+// Add near top of <script> block
+function fmtTs(ts){
+  const s=String(ts||'').trim();
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})/);
+  if(m) return `<span class="mono" style="font-size:11px">${m[3]}-${m[2]}-${m[1]}</span><br><span class="mono" style="font-size:10px;color:var(--muted)">${m[4]}:${m[5]}:${m[6]}</span>`;
+  return `<span class="mono" style="font-size:11px">${s||'—'}</span>`;
+}
+
+
 
 // ── API ──────────────────────────────────────────────────────
 async function api(action,payload={}){
@@ -1326,13 +1337,13 @@ function sortRows(rows,sortVal,pcsField){
 }
 
 function renderInputRows(rows){
-  document.getElementById('rpt-inputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No inputs match filters</td></tr>':rows.map(r=>`<tr><td class="mono" style="font-size:11px">${r.Timestamp||'—'}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-green">${Number(r.PIECES_IN||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+  document.getElementById('rpt-inputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No inputs match filters</td></tr>':rows.map(r=>`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-green">${Number(r.PIECES_IN||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
 }
 function renderOutputRows(rows){
-  document.getElementById('rpt-outputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No outputs match filters</td></tr>':rows.map(r=>`<tr><td class="mono" style="font-size:11px">${r.Timestamp||'—'}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-red">${Number(r.PCS_OUT||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+  document.getElementById('rpt-outputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No outputs match filters</td></tr>':rows.map(r=>`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-red">${Number(r.PCS_OUT||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
 }
 function renderHistoryRows(rows){
-  document.getElementById('rpt-history-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="12">No transactions match filters</td></tr>':rows.map(r=>{const type=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');const pcs=type==='INPUT'?Number(r.PIECES_IN||r.PCS||0):Number(r.PCS_OUT||r.PCS||0);return`<tr><td class="mono" style="font-size:11px">${r.Timestamp||'—'}</td><td><span class="badge ${type==='INPUT'?'badge-green':'badge-red'}">${type}</span></td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num ${type==='INPUT'?'num-green':'num-red'}">${pcs}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`;}).join('');
+  document.getElementById('rpt-history-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="12">No transactions match filters</td></tr>':rows.map(r=>{const type=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');const pcs=type==='INPUT'?Number(r.PIECES_IN||r.PCS||0):Number(r.PCS_OUT||r.PCS||0);return`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${type==='INPUT'?'badge-green':'badge-red'}">${type}</span></td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num ${type==='INPUT'?'num-green':'num-red'}">${pcs}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`;}).join('');
 }
 
 function applyInputFilters(){
@@ -1423,53 +1434,178 @@ function openEditFromInput(r){
 function downloadReportExcel(){
   if(!summaryCache){showToast('Load a report first','error');return;}
   try{
-    const from=document.getElementById('rpt-from').value||'';
-    const to=document.getElementById('rpt-to').value||'';
-    const wb=XLSX.utils.book_new();
+    const from = document.getElementById('rpt-from').value||'';
+    const to   = document.getElementById('rpt-to').value||'';
+    const wb   = XLSX.utils.book_new();
 
-    // Helper: array of arrays with header row
-    function toSheet(rows,cols,labels){
-      const header=labels||cols;
-      const data=[header,...rows.map(r=>cols.map(c=>{
-        const v=r[c];return v===undefined||v===null?'':v;
-      }))];
-      const ws=XLSX.utils.aoa_to_sheet(data);
-      // Bold header row
-      const range=XLSX.utils.decode_range(ws['!ref']);
+    // ── split "yyyy-MM-dd HH:mm:ss" → date "dd-mm-yyyy" + time "hh:mm:ss" ──
+    function splitTs(ts){
+      const s = String(ts||'').trim();
+      const m = s.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})/);
+      if(m) return { date: m[3]+'-'+m[2]+'-'+m[1], time: m[4]+':'+m[5]+':'+m[6] };
+      const d = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(d) return { date: d[3]+'-'+d[2]+'-'+d[1], time: '' };
+      return { date: s, time: '' };
+    }
+
+    function buildSheet(rows, colDefs){
+      const header = colDefs.map(c=>c.label);
+      const data = [header, ...rows.map(r=>
+        colDefs.map(c=>{
+          if(c.key==='_date') return splitTs(r.Timestamp).date;
+          if(c.key==='_time') return splitTs(r.Timestamp).time;
+          if(c.transform) return c.transform(r);
+          const v = r[c.key];
+          return (v===undefined||v===null)?'':v;
+        })
+      )];
+      // Totals row
+      if(colDefs.some(c=>c.total)){
+        const totRow = colDefs.map(c=>{
+          if(c.totalLabel) return 'TOTAL';
+          if(c.total) return rows.reduce((s,r)=>s+Number(r[c.key]||0),0);
+          return '';
+        });
+        // format numeric totals to 4dp where needed
+        data.push(totRow);
+      }
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      // bold header
+      const range = XLSX.utils.decode_range(ws['!ref']);
       for(let C=range.s.c;C<=range.e.c;C++){
         const addr=XLSX.utils.encode_cell({r:0,c:C});
-        if(ws[addr])ws[addr].s={font:{bold:true}};
+        if(ws[addr]) ws[addr].s={font:{bold:true}};
       }
       return ws;
     }
 
-    // Sheet 1: 📦 Stock Summary
-    const stockCols=['SLOC','BRAND','MATERIAL_CODE','LOT_NO','THICKNESS','SIZE','PIECES_REMAINING','SQM_REMAINING','NA_REMAINING','USER'];
-    const stockLabels=['SLOC','Brand','Material Code','Lot No','Thickness (mm)','Size','PCS Remaining','SQM Remaining','NA Remaining','User'];
-    XLSX.utils.book_append_sheet(wb,toSheet(summaryCache.stock||[],stockCols,stockLabels),'📦 Stock Summary');
+    // ── Inputs sheet ──────────────────────────────────────────
+    const inCols = [
+      {key:'_date',       label:'Date'},
+      {key:'_time',       label:'Time'},
+      {key:'SLOC',        label:'SLOC'},
+      {key:'BRAND',       label:'Brand'},
+      {key:'MATERIAL_CODE',label:'Material Code'},
+      {key:'LOT_NO',      label:'Lot No'},
+      {key:'THICKNESS',   label:'Thickness (mm)'},
+      {key:'SIZE',        label:'Size'},
+      {key:'PIECES_IN',   label:'PCS In',  total:true, totalLabel:false},
+      {key:'SQM',         label:'SQM',     total:true},
+      {key:'NA',          label:'NA',      total:true},
+      {key:'USER',        label:'User', totalLabel:true}
+    ];
+    // fix: totalLabel should be on the label column, not USER
+    inCols[8].totalLabel = false; // PCS In — just sum
+    // We'll use a simpler totals approach:
+    const inColsClean = [
+      {key:'_date',       label:'Date'},
+      {key:'_time',       label:'Time'},
+      {key:'SLOC',        label:'SLOC'},
+      {key:'BRAND',       label:'Brand'},
+      {key:'MATERIAL_CODE',label:'Material Code'},
+      {key:'LOT_NO',      label:'Lot No'},
+      {key:'THICKNESS',   label:'Thickness (mm)'},
+      {key:'SIZE',        label:'Size'},
+      {key:'PIECES_IN',   label:'PCS In'},
+      {key:'SQM',         label:'SQM'},
+      {key:'NA',          label:'NA'},
+      {key:'USER',        label:'User'}
+    ];
+    const inputs  = summaryCache.inputs  || [];
+    const outputs = summaryCache.outputs || [];
+    const stock   = summaryCache.stock   || [];
+    const txRows  = summaryCache._transactions && summaryCache._transactions.length>0
+      ? summaryCache._transactions
+      : [...inputs.map(r=>({...r,TYPE:'INPUT'})), ...outputs.map(r=>({...r,TYPE:'OUTPUT'}))]
+          .sort((a,b)=>String(a.Timestamp).localeCompare(String(b.Timestamp)));
 
-    // Sheet 2: 📥 Inputs
-    const inCols=['Timestamp','SLOC','BRAND','MATERIAL_CODE','LOT_NO','THICKNESS','SIZE','PIECES_IN','SQM','NA','USER'];
-    const inLabels=['Timestamp','SLOC','Brand','Material Code','Lot No','Thickness (mm)','Size','PCS In','SQM','NA','User'];
-    XLSX.utils.book_append_sheet(wb,toSheet(summaryCache.inputs||[],inCols,inLabels),'📥 Inputs');
+    function toAoa(rows, cols){
+      const header = cols.map(c=>c.label);
+      const body   = rows.map(r=>cols.map(c=>{
+        if(c.key==='_date') return splitTs(r.Timestamp).date;
+        if(c.key==='_time') return splitTs(r.Timestamp).time;
+        const v=r[c.key]; return (v===undefined||v===null)?'':v;
+      }));
+      // totals
+      const numKeys = cols.filter(c=>['PIECES_IN','PCS_OUT','SQM','NA','PIECES_REMAINING','SQM_REMAINING','NA_REMAINING'].includes(c.key));
+      const totRow  = cols.map((c,i)=>{
+        if(i===0) return 'TOTAL';
+        if(numKeys.find(n=>n.key===c.key))
+          return rows.reduce((s,r)=>s+Number(r[c.key]||0),0);
+        return '';
+      });
+      return [header, ...body, totRow];
+    }
 
-    // Sheet 3: 📤 Outputs
-    const outCols=['Timestamp','SLOC','BRAND','MATERIAL_CODE','LOT_NO','THICKNESS','SIZE','PCS_OUT','SQM','NA','USER'];
-    const outLabels=['Timestamp','SLOC','Brand','Material Code','Lot No','Thickness (mm)','Size','PCS Out','SQM','NA','User'];
-    XLSX.utils.book_append_sheet(wb,toSheet(summaryCache.outputs||[],outCols,outLabels),'📤 Outputs');
+    // Inputs
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(toAoa(inputs, inColsClean)), '📥 Inputs');
 
-    // Sheet 4: 📋 All Transactions
-    const txRows=summaryCache._transactions&&summaryCache._transactions.length>0
-      ?summaryCache._transactions
-      :[...(summaryCache.inputs||[]).map(r=>({...r,TYPE:'INPUT',PCS:r.PIECES_IN})),
-        ...(summaryCache.outputs||[]).map(r=>({...r,TYPE:'OUTPUT',PCS:r.PCS_OUT}))]
-        .sort((a,b)=>String(a.Timestamp).localeCompare(String(b.Timestamp)));
-    const txCols=['Timestamp','TYPE','SLOC','BRAND','MATERIAL_CODE','LOT_NO','THICKNESS','SIZE','PIECES_IN','PCS_OUT','SQM','NA','USER'];
-    const txLabels=['Timestamp','Type','SLOC','Brand','Material Code','Lot No','Thickness (mm)','Size','PCS In','PCS Out','SQM','NA','User'];
-    XLSX.utils.book_append_sheet(wb,toSheet(txRows,txCols,txLabels),'📋 All Transactions');
+    // Outputs
+    const outColsClean = [
+      {key:'_date',        label:'Date'},
+      {key:'_time',        label:'Time'},
+      {key:'SLOC',         label:'SLOC'},
+      {key:'BRAND',        label:'Brand'},
+      {key:'MATERIAL_CODE',label:'Material Code'},
+      {key:'LOT_NO',       label:'Lot No'},
+      {key:'THICKNESS',    label:'Thickness (mm)'},
+      {key:'SIZE',         label:'Size'},
+      {key:'PCS_OUT',      label:'PCS Out'},
+      {key:'SQM',          label:'SQM'},
+      {key:'NA',           label:'NA'},
+      {key:'USER',         label:'User'}
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(toAoa(outputs, outColsClean)), '📤 Outputs');
 
-    const fname='PlywoodStock_'+from+'_to_'+to+'.xlsx';
-    XLSX.writeFile(wb,fname);
+    // Current Stock
+    const stkColsClean = [
+      {key:'_date',              label:'Date Updated'},
+      {key:'_time',              label:'Time Updated'},
+      {key:'SLOC',               label:'SLOC'},
+      {key:'BRAND',              label:'Brand'},
+      {key:'MATERIAL_CODE',      label:'Material Code'},
+      {key:'LOT_NO',             label:'Lot No'},
+      {key:'THICKNESS',          label:'Thickness (mm)'},
+      {key:'SIZE',               label:'Size'},
+      {key:'PIECES_REMAINING',   label:'PCS Remaining'},
+      {key:'SQM_REMAINING',      label:'SQM Remaining'},
+      {key:'NA_REMAINING',       label:'NA Remaining'},
+      {key:'USER',               label:'User'}
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(toAoa(stock, stkColsClean)), '📦 Current Stock');
+
+    // All Transactions
+    const txColsClean = [
+      {key:'_date',        label:'Date'},
+      {key:'_time',        label:'Time'},
+      {key:'TYPE',         label:'Type'},
+      {key:'SLOC',         label:'SLOC'},
+      {key:'BRAND',        label:'Brand'},
+      {key:'MATERIAL_CODE',label:'Material Code'},
+      {key:'LOT_NO',       label:'Lot No'},
+      {key:'THICKNESS',    label:'Thickness (mm)'},
+      {key:'SIZE',         label:'Size'},
+      {key:'PIECES_IN',    label:'PCS In'},
+      {key:'PCS_OUT',      label:'PCS Out'},
+      {key:'SQM',          label:'SQM'},
+      {key:'NA',           label:'NA'},
+      {key:'USER',         label:'User'}
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(toAoa(txRows, txColsClean)), '📋 Transactions');
+
+    // Bold header row on all sheets
+    wb.SheetNames.forEach(sn=>{
+      const ws = wb.Sheets[sn];
+      if(!ws['!ref']) return;
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      for(let C=range.s.c; C<=range.e.c; C++){
+        const addr = XLSX.utils.encode_cell({r:0,c:C});
+        if(ws[addr]) ws[addr].s = {font:{bold:true}};
+      }
+    });
+
+    const fname = 'PlywoodStock_'+from+'_to_'+to+'.xlsx';
+    XLSX.writeFile(wb, fname);
     showToast('Excel downloaded: '+fname,'success');
   }catch(e){showToast('Excel export failed: '+e.message,'error');}
 }
