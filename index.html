@@ -208,7 +208,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
   <div class="ls-wrap">
     <!-- Brand -->
     <div class="ls-brand">
-      <div class="ls-brand-logo">🪵 Ply<span>Stock</span> Tracker</div>
+      <div class="ls-brand-logo">🪵 Stock<span>ify</span> </div>
       <div class="ls-brand-company">Century Plyboards (India) Limited</div>
       <div class="ls-brand-loc">Chennai</div>
     </div>
@@ -223,17 +223,17 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       <div class="ls-icon-btn" id="ls-btn-output" onclick="selectSection('output')">
         <div class="ls-icon-emoji">📤</div>
         <div class="ls-icon-label">Output</div>
-        <div class="ls-icon-sub">Dispatch stock</div>
+        <div class="ls-icon-sub">Move out stock</div>
       </div>
       <div class="ls-icon-btn" id="ls-btn-reports" onclick="selectSection('reports')">
-        <div class="ls-icon-emoji">📊</div>
+        <div class="ls-icon-emoji">📝</div>
         <div class="ls-icon-label">Reports</div>
-        <div class="ls-icon-sub">Any password</div>
+        <div class="ls-icon-sub">View and download records</div>
       </div>
       <div class="ls-icon-btn" id="ls-btn-master" onclick="selectSection('master')">
         <div class="ls-icon-emoji">🗂️</div>
         <div class="ls-icon-label">Master</div>
-        <div class="ls-icon-sub">Configurations</div>
+        <div class="ls-icon-sub">Master data for Admins</div>
       </div>
     </div>
 
@@ -266,7 +266,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 
 <div id="app">
   <div class="topbar">
-    <div class="topbar-logo">Ply<span>Stock</span> Tracker</div>
+    <div class="topbar-logo">Stock<span>ify</span> </div>
     <div class="topbar-tabs">
       <button class="tab-btn active" onclick="switchTab('input')"   id="tab-input">   📥 <span>INPUT</span></button>
       <button class="tab-btn"        onclick="switchTab('output')"  id="tab-output">  📤 <span>OUTPUT</span></button>
@@ -375,6 +375,23 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       </div>
     </div>
 
+    <!-- INPUT EDIT LOGS -->
+    <div class="card gap-section" id="inputEditLogsCard">
+      <div class="card-header">
+        <div class="card-title">
+          📋 Input Edit History (Dashboard Logs)
+          <span id="ielSpinnerWrap" style="display:none"><span class="spinner"></span></span>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="loadInputEditLogs()">⟳ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>When Was Edited</th><th>Who Edited</th><th>What Was Edited</th></tr></thead>
+          <tbody id="ielTbody"><tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)">Click Refresh to load logs</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-header">
         <div class="card-title">
@@ -404,7 +421,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
   <!-- OUTPUT TAB -->
   <div class="page" id="page-output">
     <div class="page-header">
-      <div><div class="page-title">Stock Output</div><div class="page-sub">Issue plywood from inventory</div></div>
+      <div><div class="page-title">Stock Output</div><div class="page-sub">Issue plywood from inventory (Move out)</div></div>
       <button class="btn btn-outline btn-sm" id="refreshInvBtn" onclick="loadInventory()">
         <span id="refreshInvTxt">⟳ Refresh Inventory</span>
         <span id="refreshInvSpinner" style="display:none;vertical-align:middle"><span style="display:inline-block;width:11px;height:11px;border:2px solid rgba(0,0,0,0.15);border-top-color:var(--text);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:4px"></span>Loading…</span>
@@ -438,7 +455,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
     </div>
     <div class="card" id="dispatchCard" style="display:none">
       <div class="card-header">
-        <div class="card-title"><span class="step-chip"><span class="step-num">3</span> Dispatch</span></div>
+        <div class="card-title"><span class="step-chip"><span class="step-num">3</span> Move out</span></div>
         <button class="btn btn-outline btn-sm" onclick="cancelDispatch()">✕ Cancel</button>
       </div>
       <div class="card-body">
@@ -449,7 +466,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
         <div class="form-row" style="grid-template-columns:1fr 1fr 200px">
           <div class="form-group"><label class="form-label">PCS to issue</label><input class="form-control" id="dispatch-pcs" type="number" min="1" placeholder="0" oninput="calcDispatchPreview()"></div>
           <div class="form-group"><label class="form-label">Available</label><input class="form-control mono" id="dispatch-avail" readonly></div>
-          <div style="display:flex;align-items:flex-end"><button class="btn btn-red btn-lg" style="width:100%" id="dispatchBtn" disabled onclick="confirmDispatch()">📤 Confirm Dispatch</button></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn btn-red btn-lg" style="width:100%" id="dispatchBtn" disabled onclick="confirmDispatch()">📤 Confirm Move Out</button></div>
         </div>
         <div class="dispatch-preview" id="dispatchPreview">
           <div class="dp-row"><span class="dp-label">SQM out</span><span class="num mono" id="dp-sqm">—</span></div>
@@ -458,6 +475,48 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <div class="dp-row"><span class="dp-label">NA remaining after</span><span class="num mono num-green" id="dp-na-rem">—</span></div>
           <div class="dp-row"><span class="dp-label">PCS remaining after</span><span class="num mono num-green" id="dp-pcs-rem">—</span></div>
         </div>
+      </div>
+    </div>
+
+    <!-- RECENT MOVE OUTS -->
+    <div class="card gap-section" id="recentOutputsCard" style="margin-top:20px">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="step-chip"><span class="step-num">4</span> Recent Move Outs</span>
+          <span id="roSpinnerWrap" style="display:none"><span class="spinner"></span></span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="date" class="form-control" id="ro-from" style="width:auto;font-size:12px">
+          <span style="color:var(--muted);font-size:12px">→</span>
+          <input type="date" class="form-control" id="ro-to" style="width:auto;font-size:12px">
+          <button class="btn btn-outline btn-sm" id="roPresetBtn24h" onclick="setRoPreset('24h')">Last 24h</button>
+          <button class="btn btn-outline btn-sm" id="roPresetBtnToday" onclick="setRoPreset('today')">Today</button>
+          <button class="btn btn-outline btn-sm" id="roPresetBtnWeek" onclick="setRoPreset('week')">This week</button>
+          <button class="btn btn-amber btn-sm" onclick="loadRecentOutputs()">⟳ Load</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS Out</th><th>SQM</th><th>NA</th><th>User</th><th>Action</th></tr></thead>
+          <tbody id="roTbody"><tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)">Select a time range and click Load</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- OUTPUT EDIT LOGS -->
+    <div class="card gap-section" id="outputEditLogsCard" style="margin-top:20px">
+      <div class="card-header">
+        <div class="card-title">
+          📋 Output Edit History (Dashboard Logs)
+          <span id="oelSpinnerWrap" style="display:none"><span class="spinner"></span></span>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="loadOutputEditLogs()">⟳ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>When Was Edited</th><th>Who Edited</th><th>What Was Edited</th></tr></thead>
+          <tbody id="oelTbody"><tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)">Click Refresh to load logs</td></tr></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -534,7 +593,17 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <button class="btn btn-outline btn-sm" onclick="clearInputFilters()">✕ Clear</button>
         </div>
       </div>
-      <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS In</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-inputs-tbody"><tr class="empty-row"><td colspan="11">Load a date range above</td></tr></tbody></table></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS In</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-inputs-tbody"><tr class="empty-row"><td colspan="11">Load a date range above</td></tr></tbody>
+        <tfoot id="rpt-inputs-tfoot" style="display:none">
+          <tr style="background:var(--surface2);border-top:2px solid var(--border)">
+            <td colspan="7" style="padding:10px 14px;font-weight:700;font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em">TOTAL</td>
+            <td class="num num-green" id="rpt-in-total-pcs" style="padding:10px 14px;font-weight:700">—</td>
+            <td class="mono num-green" id="rpt-in-total-sqm" style="padding:10px 14px;font-weight:700">—</td>
+            <td class="mono num-amber" id="rpt-in-total-na" style="padding:10px 14px;font-weight:700">—</td>
+            <td style="padding:10px 14px"></td>
+          </tr>
+        </tfoot>
+        </table></div>
     </div>
     <div id="rpt-outputs" class="card" style="display:none">
       <div class="card-header">
@@ -551,7 +620,17 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <button class="btn btn-outline btn-sm" onclick="clearOutputFilters()">✕ Clear</button>
         </div>
       </div>
-      <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS Out</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-outputs-tbody"><tr class="empty-row"><td colspan="11">Load a date range above</td></tr></tbody></table></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS Out</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-outputs-tbody"><tr class="empty-row"><td colspan="11">Load a date range above</td></tr></tbody>
+        <tfoot id="rpt-outputs-tfoot" style="display:none">
+          <tr style="background:var(--surface2);border-top:2px solid var(--border)">
+            <td colspan="7" style="padding:10px 14px;font-weight:700;font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em">TOTAL</td>
+            <td class="num num-red" id="rpt-out-total-pcs" style="padding:10px 14px;font-weight:700">—</td>
+            <td class="mono num-red" id="rpt-out-total-sqm" style="padding:10px 14px;font-weight:700">—</td>
+            <td class="mono num-red" id="rpt-out-total-na" style="padding:10px 14px;font-weight:700">—</td>
+            <td style="padding:10px 14px"></td>
+          </tr>
+        </tfoot>
+        </table></div>
     </div>
     <div id="rpt-history" class="card" style="display:none">
       <div class="card-header">
@@ -636,15 +715,69 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
   </div>
 </div>
 
+<!-- EDIT OUTPUT PCS MODAL -->
+<div id="editOutputModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--surface);border-radius:var(--r-lg);padding:24px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-weight:600;font-size:16px">✎ Correct Move Out Quantity</div>
+      <button onclick="closeOutputEditModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">✕</button>
+    </div>
+    <div style="background:var(--bg);border-radius:var(--r-md);padding:10px 14px;margin-bottom:16px;font-size:13px">
+      <span class="badge badge-code" id="eom-code">—</span>
+      <span style="color:var(--muted);margin-left:8px" id="eom-info">—</span>
+      <div style="margin-top:4px;font-size:11px;color:var(--muted)" id="eom-ts">—</div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label class="form-label">Correct PCS Out</label>
+      <input class="form-control mono" id="eom-pcs" type="number" min="0" placeholder="Enter correct PCS value" oninput="calcOutputEditPreview()">
+    </div>
+    <div id="eom-preview" style="display:none;background:var(--bg);border-radius:var(--r-md);padding:10px 14px;margin-bottom:16px;font-size:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="color:var(--muted)">Was</span><span class="mono num-red" id="eom-old-pcs">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="color:var(--muted)">Will become</span><span class="mono num-green" id="eom-new-pcs">—</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="closeOutputEditModal()">Cancel</button>
+      <button class="btn btn-dark" id="eomSaveBtn" onclick="saveEditedOutputPcs()">
+        <span id="eomSaveTxt">Save correction</span>
+        <span id="eomSaveSpinner" style="display:none"><span style="display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:4px"></span>Saving…</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="toastContainer"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZWKYimG0kg6DYAXMj0GWrXQQ-lzIH2FI1CqJVRXr7WaQ2EW1ThgOb1CuBpIwhrhNITg/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAk2o2AYgUIue2zne-s5dH-2V_flYF77o9EK1wdcAGHMfIfmP-G55scezQvPsDTOaKqw/exec';
 
 let masterRows=[],stockRows=[],inventoryRows=[],filteredInv=[],selectedLot=null,pendingRows=[],summaryCache=null;
 let thresholdMap={},stockByCodeMap={},thresholdsReady=false;
 let currentReportView='summary';
 let currentUser='';
+let brandColorMap={};  // brand name → hex color from Google Sheet
+
+// ── BRAND COLOR HELPERS ──────────────────────────────────────
+function isLightColor(hex){
+  if(!hex||hex.length<6)return true;
+  const h=hex.replace('#','');
+  const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+  return(r*299+g*587+b*114)/1000>145;
+}
+function brandSwatch(brand){
+  const c=brandColorMap[String(brand||'').trim()];
+  if(!c)return'';
+  return`<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c};margin-right:4px;flex-shrink:0;vertical-align:middle;border:1px solid rgba(0,0,0,.18)"></span>`;
+}
+function brandCell(brand){
+  const c=brandColorMap[String(brand||'').trim()];
+  if(!c)return`<span style="font-weight:500">${brand||'—'}</span>`;
+  const txt=isLightColor(c)?'#1a1714':'#ffffff';
+  return`<span style="display:inline-flex;align-items:center;gap:4px;background:${c};color:${txt};padding:2px 7px;border-radius:4px;font-size:12px;font-weight:600">${brand||'—'}</span>`;
+}
 
 
 // Add near top of <script> block
@@ -804,7 +937,19 @@ async function doLogin(){
     switchTab(selectedSection==='reports'?'reports':selectedSection);
     showToast('Welcome '+user+'! Logged into '+SECTION_META[selectedSection].label,'success');
     setTimeout(loadThresholds,2000);
+    // Fetch brand colors from sheet (async, non-blocking)
+    api('getBrandColors').then(d=>{
+      brandColorMap=d.colors||{};
+      populateInputDropdowns();
+      populateOutputDropdowns();
+      renderStockViewer();      // re-render with brand colors
+      renderLots();             // re-render lot cards with color stripe
+      // re-render recent inputs if already loaded
+      const riBody=document.getElementById('riTbody');
+      if(riBody&&riBody.querySelector('tr td:not(.empty-row td)'))loadRecentInputs();
+    }).catch(()=>{});
     initRecentInputs();
+    initRecentOutputs();
   }catch(e){
     errEl.style.display='block';
     if(e.message==='WRONG_PASSWORD'){
@@ -864,7 +1009,8 @@ function switchTab(name){
   });
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
-  if(name==='output')  loadInventory();
+  if(name==='output')  { loadInventory(); initRecentOutputs(); loadOutputEditLogs(); }
+  if(name==='input')   { loadInputEditLogs(); }
   if(name==='reports') setPreset('month');
   if(name==='master')  loadMasterData();
 }
@@ -904,6 +1050,9 @@ function populateInputDropdowns(){
   const sizes=[...new Set(masterRows.map(r=>String(r.SIZE||'')).filter(v=>v!==''))].sort();
   fillSelect('in-sloc',slocs,'— Select SLOC —');fillSelect('in-brand',brands,'— Select brand —');
   fillSelect('in-thick',thicks,'— Thickness —');fillSelect('in-size',sizes,'— Size —');
+  // Default SLOC to BRANDED
+  const slocEl=document.getElementById('in-sloc');
+  if(slocEl&&!slocEl.value)slocEl.value='BRANDED';
   const svBrands=[...new Set(stockRows.map(r=>r.BRAND).filter(Boolean))].sort();
   const svSizes=[...new Set(stockRows.map(r=>String(r.SIZE||'')).filter(Boolean))].sort();
   const svThicks=[...new Set(stockRows.map(r=>String(r.THICKNESS||'')).filter(Boolean))].sort((a,b)=>+a-+b);
@@ -913,7 +1062,16 @@ function populateInputDropdowns(){
 function fillSelect(id,values,placeholder){
   const el=document.getElementById(id);if(!el)return;
   const saved=el.value;el.innerHTML='<option value="">'+placeholder+'</option>';
-  values.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;if(String(v)===String(saved))o.selected=true;el.appendChild(o);});
+  const isBrandSel=id.includes('brand')||id.includes('Brand');
+  values.forEach(v=>{
+    const o=document.createElement('option');o.value=v;o.textContent=v;
+    if(isBrandSel&&brandColorMap[v]){
+      o.style.backgroundColor=brandColorMap[v];
+      o.style.color=isLightColor(brandColorMap[v])?'#000':'#fff';
+    }
+    if(String(v)===String(saved))o.selected=true;
+    el.appendChild(o);
+  });
 }
 
 function filterMasterBySloc(){updateMaterialCodePreview();}
@@ -1008,8 +1166,30 @@ function addPendingRow(){
   const sqmFac=mr?Number(mr.Sqmtr||0):0;
   const sqm=Math.round(pcs*sqmFac*10000)/10000;
   const na=Math.round(pcs*sqmFac*(Number(thick)/4)*10000)/10000;
+  // ── Duplicate check ──────────────────────────────────────────
+  const dupInStock=stockRows.find(r=>
+    String(r.MATERIAL_CODE||'').trim()===String(code).trim()&&
+    String(r.LOT_NO||'').trim()===String(lot).trim()&&
+    Number(r.PIECES_REMAINING||0)>0
+  );
+  const dupInPending=pendingRows.find(r=>
+    String(r.MATERIAL_CODE||'').trim()===String(code).trim()&&
+    String(r.LOT_NO||'').trim()===String(lot).trim()
+  );
+  if(dupInStock||dupInPending){
+    const where=dupInStock?'CurrentStock ('+Number(dupInStock.PIECES_REMAINING)+' pcs remaining)':'the pending list below';
+    const msg='⚠️ Duplicate Entry Warning\n\n'+
+      'Lot '+lot+' of '+brand+' ('+code+') already exists in '+where+'.\n\n'+
+      'Adding again will increase the stock quantity for this lot.\n\n'+
+      'Are you sure you want to add this entry?';
+    if(!confirm(msg))return;
+  }
+  // ─────────────────────────────────────────────────────────────
   pendingRows.push({SLOC:sloc,BRAND:brand,THICKNESS:Number(thick),SIZE:size,MATERIAL_CODE:code,LOT_NO:lot,PIECES_IN:pcs,SQM:sqm,NA:na,SQM_FACTOR:sqmFac});
-  renderPending();clearInputForm(false);showToast('Row added to pending list','success');
+  renderPending();clearInputForm(false);
+  // Carry forward lot number for next entry (same lot, different brand/size is common)
+  document.getElementById('in-lot').value=lot;
+  showToast('Row added — lot '+lot+' pre-filled for next entry','success');
 }
 
 function renderPending(){
@@ -1025,7 +1205,7 @@ function renderPending(){
     <tr id="prow-${i}">
       <td>${i+1}</td>
       <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC}</span></td>
-      <td style="font-weight:500">${r.BRAND}</td>
+      <td style="font-weight:500">${brandCell(r.BRAND)}</td>
       <td><span class="badge badge-code">${r.MATERIAL_CODE}</span></td>
       <td class="mono">${r.LOT_NO}</td><td class="mono">${r.THICKNESS}mm</td><td class="mono">${r.SIZE}</td>
       <td class="num">${r.PIECES_IN}</td>
@@ -1040,7 +1220,13 @@ function clearPending(){pendingRows=[];renderPending();}
 function clearInputForm(clearDropdowns=true){
   document.getElementById('in-lot').value='';document.getElementById('in-pcs').value='';
   document.getElementById('inputPreview').style.display='none';
-  if(clearDropdowns){['in-sloc','in-brand','in-thick','in-size'].forEach(id=>document.getElementById(id).value='');document.getElementById('in-matcode').value='';}
+  if(clearDropdowns){
+    ['in-brand','in-thick','in-size'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('in-matcode').value='';
+    // Default SLOC to BRANDED
+    const slocEl=document.getElementById('in-sloc');
+    if(slocEl)slocEl.value='BRANDED';
+  }
 }
 
 async function addAndSaveNow(){
@@ -1048,6 +1234,23 @@ async function addAndSaveNow(){
   const thick=document.getElementById('in-thick').value;const size=document.getElementById('in-size').value;
   const lot=document.getElementById('in-lot').value.trim();const pcs=Number(document.getElementById('in-pcs').value||0);
   if(!sloc||!brand||!thick||!size||!lot||pcs<=0){showToast('Fill all fields before saving','error');return;}
+  // ── Duplicate check ──────────────────────────────────────────
+  const codeRow=findMasterRow(brand,thick,size)||findMasterRow(brand,null,null);
+  let code=document.getElementById('in-matcode').value.trim();
+  if(codeRow){const init=String(codeRow.MATERIAL_CODE_INITIALS||'').trim();code=init+String(Number(thick)).padStart(2,'0')+size.padStart(5,'0');}
+  const dupInStock=stockRows.find(r=>
+    String(r.MATERIAL_CODE||'').trim()===String(code).trim()&&
+    String(r.LOT_NO||'').trim()===String(lot).trim()&&
+    Number(r.PIECES_REMAINING||0)>0
+  );
+  if(dupInStock){
+    const msg='⚠️ Duplicate Entry Warning\n\n'+
+      'Lot '+lot+' of '+brand+' ('+code+') already exists in CurrentStock with '+Number(dupInStock.PIECES_REMAINING)+' pcs remaining.\n\n'+
+      'Saving again will increase the stock quantity for this lot.\n\n'+
+      'Are you sure you want to save this entry?';
+    if(!confirm(msg))return;
+  }
+  // ─────────────────────────────────────────────────────────────
   addPendingRow();await submitPending();
 }
 
@@ -1105,7 +1308,7 @@ function renderStockViewer(){
     const alertPill=lvl==='red'?'<span class="alert-pill alert-pill-red" style="margin-left:6px">▼ Below min</span>':lvl==='yellow'?'<span class="alert-pill alert-pill-yellow" style="margin-left:6px">≈ Near min</span>':'';
     return`<tr class="${lvl==='red'?'row-red':lvl==='yellow'?'row-yellow':''}">
       <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td>
-      <td style="font-weight:500">${r.BRAND||'—'}</td>
+      <td>${brandCell(r.BRAND)}</td>
       <td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span>${alertPill}</td>
       <td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
       <td><span class="num ${pcsCol}">${pcs}</span></td>
@@ -1177,13 +1380,13 @@ function renderLots(){
     const pcsCol=pcs>20?'var(--green)':pcs>5?'var(--amber)':'var(--red)';
     const alertBadge=lvl==='red'?'<div class="alert-pill alert-pill-red" style="margin-top:8px;border-radius:var(--r-sm);padding:3px 8px">▼ Below min ('+(thresholdMap[r.MATERIAL_CODE]||'?')+' req.)</div>':lvl==='yellow'?'<div class="alert-pill alert-pill-yellow" style="margin-top:8px;border-radius:var(--r-sm);padding:3px 8px">≈ Near min ('+(thresholdMap[r.MATERIAL_CODE]||'?')+' req.)</div>':'';
     return`<div class="lot-card ${pcs===0?'empty':''} ${isSelected?'selected':''} ${alertCls}" onclick="${pcs>0?'selectLot('+i+')':''}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px">
+      ${brandColorMap[r.BRAND]?`<div style="position:absolute;top:0;left:0;right:0;height:4px;background:${brandColorMap[r.BRAND]};border-radius:var(--r-md) var(--r-md) 0 0"></div>`:''}
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px;margin-top:${brandColorMap[r.BRAND]?'4px':'0'}">
         <div class="lot-no-label">LOT / STACK NO.</div>
-        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openEditModal(${i})" style="font-size:10px;padding:2px 7px;color:var(--blue);border-color:var(--blue)">✎ Edit</button>
       </div>
       <div class="lot-no">${r.LOT_NO}</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:2px"><span class="badge badge-code">${r.MATERIAL_CODE}</span></div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${r.BRAND} · ${r.THICKNESS}mm · ${r.SIZE}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">${brandCell(r.BRAND)} · ${r.THICKNESS}mm · ${r.SIZE}</div>
       <div class="lot-pcs">
         <span class="lot-pcs-num" style="color:${pcsCol}">${pcs}</span>
         <span class="lot-pcs-label">pcs</span>
@@ -1230,13 +1433,15 @@ async function confirmDispatch(){
   const btn=document.getElementById('dispatchBtn');btn.disabled=true;btn.textContent='Saving…';
   try{
     const result=await api('saveOutput',{row:{SLOC:selectedLot.SLOC,BRAND:selectedLot.BRAND,MATERIAL_CODE:selectedLot.MATERIAL_CODE,LOT_NO:selectedLot.LOT_NO,THICKNESS:selectedLot.THICKNESS,SIZE:selectedLot.SIZE,PCS_OUT:pcs},user:currentUser});
-    showToast('Dispatched '+pcs+' pcs. Remaining: '+result.remaining,'success');
+    showToast('Moved out '+pcs+' pcs. Remaining: '+result.remaining,'success');
     document.getElementById('dispatchCard').style.display='none';selectedLot=null;
     const data=await api('getInventory');
     stockRows=data.rows||[];inventoryRows=stockRows.filter(r=>Number(r.PIECES_REMAINING)>0);
     rebuildStockByCode();updateOutputKpis();filterOutput();renderStockViewer();
-  }catch(e){showToast('Dispatch failed: '+e.message,'error');}
-  btn.disabled=false;btn.textContent='📤 Confirm Dispatch';
+    // Reload recent move outs if visible
+    if(document.getElementById('roTbody'))loadRecentOutputs();
+  }catch(e){showToast('Move out failed: '+e.message,'error');}
+  btn.disabled=false;btn.textContent='📤 Confirm Move Out';
 }
 
 function cancelDispatch(){selectedLot=null;document.getElementById('dispatchCard').style.display='none';renderLots();}
@@ -1300,7 +1505,7 @@ function showReportView(view){
 function renderReportSummaryTable(rows){
   const tbody=document.getElementById('rpt-summary-tbody');const tfoot=document.getElementById('rpt-summary-tfoot');
   if(rows.length===0){tbody.innerHTML='<tr class="empty-row"><td colspan="10">No stock data</td></tr>';tfoot.style.display='none';return;}
-  tbody.innerHTML=rows.map(r=>`<tr><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td style="font-weight:500">${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-green">${Number(r.PIECES_REMAINING||0)}</td><td class="mono num-green">${Number(r.SQM_REMAINING||0).toFixed(4)}</td><td class="mono num-amber">${Number(r.NA_REMAINING||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+  tbody.innerHTML=rows.map(r=>`<tr><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${brandCell(r.BRAND)}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-green">${Number(r.PIECES_REMAINING||0)}</td><td class="mono num-green">${Number(r.SQM_REMAINING||0).toFixed(4)}</td><td class="mono num-amber">${Number(r.NA_REMAINING||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
   const totPcs=rows.reduce((s,r)=>s+Number(r.PIECES_REMAINING||0),0);
   const totSqm=rows.reduce((s,r)=>s+Number(r.SQM_REMAINING||0),0);
   const totNa=rows.reduce((s,r)=>s+Number(r.NA_REMAINING||0),0);
@@ -1337,13 +1542,33 @@ function sortRows(rows,sortVal,pcsField){
 }
 
 function renderInputRows(rows){
-  document.getElementById('rpt-inputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No inputs match filters</td></tr>':rows.map(r=>`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-green">${Number(r.PIECES_IN||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+  document.getElementById('rpt-inputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No inputs match filters</td></tr>':rows.map(r=>`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${brandCell(r.BRAND)}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-green">${Number(r.PIECES_IN||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+  const tfoot=document.getElementById('rpt-inputs-tfoot');
+  if(rows.length>0&&tfoot){
+    const totPcs=rows.reduce((s,r)=>s+Number(r.PIECES_IN||0),0);
+    const totSqm=rows.reduce((s,r)=>s+Number(r.SQM||0),0);
+    const totNa=rows.reduce((s,r)=>s+Number(r.NA||0),0);
+    document.getElementById('rpt-in-total-pcs').textContent=totPcs;
+    document.getElementById('rpt-in-total-sqm').textContent=totSqm.toFixed(4);
+    document.getElementById('rpt-in-total-na').textContent=totNa.toFixed(4);
+    tfoot.style.display='';
+  } else if(tfoot){tfoot.style.display='none';}
 }
 function renderOutputRows(rows){
-  document.getElementById('rpt-outputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No outputs match filters</td></tr>':rows.map(r=>`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-red">${Number(r.PCS_OUT||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+  document.getElementById('rpt-outputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No outputs match filters</td></tr>':rows.map(r=>`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${brandCell(r.BRAND)}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-red">${Number(r.PCS_OUT||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+  const tfoot=document.getElementById('rpt-outputs-tfoot');
+  if(rows.length>0&&tfoot){
+    const totPcs=rows.reduce((s,r)=>s+Number(r.PCS_OUT||0),0);
+    const totSqm=rows.reduce((s,r)=>s+Number(r.SQM||0),0);
+    const totNa=rows.reduce((s,r)=>s+Number(r.NA||0),0);
+    document.getElementById('rpt-out-total-pcs').textContent=totPcs;
+    document.getElementById('rpt-out-total-sqm').textContent=totSqm.toFixed(4);
+    document.getElementById('rpt-out-total-na').textContent=totNa.toFixed(4);
+    tfoot.style.display='';
+  } else if(tfoot){tfoot.style.display='none';}
 }
 function renderHistoryRows(rows){
-  document.getElementById('rpt-history-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="12">No transactions match filters</td></tr>':rows.map(r=>{const type=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');const pcs=type==='INPUT'?Number(r.PIECES_IN||r.PCS||0):Number(r.PCS_OUT||r.PCS||0);return`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${type==='INPUT'?'badge-green':'badge-red'}">${type}</span></td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${r.BRAND||'—'}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num ${type==='INPUT'?'num-green':'num-red'}">${pcs}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`;}).join('');
+  document.getElementById('rpt-history-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="12">No transactions match filters</td></tr>':rows.map(r=>{const type=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');const pcs=type==='INPUT'?Number(r.PIECES_IN||r.PCS||0):Number(r.PCS_OUT||r.PCS||0);return`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${type==='INPUT'?'badge-green':'badge-red'}">${type}</span></td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${brandCell(r.BRAND)}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num ${type==='INPUT'?'num-green':'num-red'}">${pcs}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`;}).join('');
 }
 
 function applyInputFilters(){
@@ -1407,14 +1632,17 @@ async function loadRecentInputs(){
     else{tbody.innerHTML=rows.map((r,i)=>`<tr>
       <td class="mono" style="font-size:11px;color:var(--muted)">${r.Timestamp||'—'}</td>
       <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td>
-      <td style="font-weight:500">${r.BRAND||'—'}</td>
+      <td>${brandCell(r.BRAND)}</td>
       <td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td>
       <td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
       <td class="num num-green">${Number(r.PIECES_IN||0)}</td>
       <td class="mono" style="color:var(--green)">${Number(r.SQM||0).toFixed(4)}</td>
       <td class="mono" style="color:var(--amber)">${Number(r.NA||0).toFixed(4)}</td>
       <td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td>
-      <td><button class="btn btn-outline btn-sm" onclick="openEditFromInput(${JSON.stringify(r).replace(/"/g,'&quot;')})" style="font-size:10px;padding:3px 8px;color:var(--blue);border-color:var(--blue)">✎ Edit</button></td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-outline btn-sm" onclick="openEditFromInput(${JSON.stringify(r).replace(/"/g,'&quot;')})" style="font-size:10px;padding:3px 8px;color:var(--blue);border-color:var(--blue)">✎ Edit</button>
+        <button class="btn btn-outline btn-sm" onclick="confirmDeleteInput(${JSON.stringify(r).replace(/"/g,'&quot;')})" style="font-size:10px;padding:3px 8px;color:var(--red);border-color:var(--red)">✕ Del</button>
+      </td>
     </tr>`).join('');}
   }catch(e){tbody.innerHTML='<tr class="empty-row"><td colspan="12">Load failed: '+e.message+'</td></tr>';showToast('Load failed: '+e.message,'error');}
   spinner.style.display='none';
@@ -1697,10 +1925,11 @@ async function saveEditedStock(){
   const btn=document.getElementById('emSaveBtn');
   document.getElementById('emSaveTxt').style.display='none';document.getElementById('emSaveSpinner').style.display='inline';btn.disabled=true;
   try{
-    const result=await api('editStock',{MATERIAL_CODE:r.MATERIAL_CODE,OLD_LOT:r.LOT_NO,NEW_MATERIAL_CODE:materialCode,SLOC:sloc,LOT_NO:lot,BRAND:brand,THICKNESS:thickNum,SIZE:size,PIECES_REMAINING:pcs,SQM_REMAINING:sqm,NA_REMAINING:na});
+    const result=await api('editStock',{MATERIAL_CODE:r.MATERIAL_CODE,OLD_LOT:r.LOT_NO,NEW_MATERIAL_CODE:materialCode,SLOC:sloc,LOT_NO:lot,BRAND:brand,THICKNESS:thickNum,SIZE:size,PIECES_REMAINING:pcs,SQM_REMAINING:sqm,NA_REMAINING:na,user:currentUser});
     showToast('✓ Stock updated! Code: '+(result.updated_code||materialCode),'success');
     closeEditModal();await loadStockViewer();await loadInventory();
     if(document.getElementById('riTbody'))loadRecentInputs();
+    if(document.getElementById('ielTbody'))loadInputEditLogs();
   }catch(e){showToast('Update failed: '+e.message,'error');}
   document.getElementById('emSaveTxt').style.display='inline';document.getElementById('emSaveSpinner').style.display='none';btn.disabled=false;
 }
@@ -2069,6 +2298,187 @@ async function deleteMasterCell(col,row,currentVal){
     if(col==='USER')await loadUsers();
     await loadMasterData();
   }catch(e){showToast('Delete failed: '+e.message,'error');}
+}
+
+// ── DELETE INPUT ENTRY ────────────────────────────────────────
+async function confirmDeleteInput(r){
+  if(!confirm('Delete this input entry?\n\n'+
+    (r.BRAND||'')+ ' · Lot '+(r.LOT_NO||'')+' · '+(r.THICKNESS||'')+'mm · '+(r.SIZE||'')+'\n'+
+    'PCS In: '+Number(r.PIECES_IN||0)+'\nTimestamp: '+(r.Timestamp||'')+'\n\n'+
+    'This will REVERSE the stock addition (reduce CurrentStock by '+Number(r.PIECES_IN||0)+' pcs).\nThis cannot be undone.'))return;
+  try{
+    const result=await api('deleteInputEntry',{
+      Timestamp:r.Timestamp,
+      MATERIAL_CODE:r.MATERIAL_CODE,
+      LOT_NO:r.LOT_NO,
+      user:currentUser
+    });
+    showToast('✓ Input deleted. Stock reduced by '+result.pcs_removed+' pcs.','success');
+    loadRecentInputs();
+    const data=await api('getInventory');
+    stockRows=data.rows||[];inventoryRows=stockRows.filter(x=>Number(x.PIECES_REMAINING)>0);
+    rebuildStockByCode();updateOutputKpis();filterOutput();renderStockViewer();
+    loadInputEditLogs();  // auto-refresh
+  }catch(e){showToast('Delete failed: '+e.message,'error');}
+}
+
+// ── DELETE OUTPUT ENTRY ───────────────────────────────────────
+async function confirmDeleteOutput(r){
+  if(!confirm('Delete this move out entry?\n\n'+
+    (r.BRAND||'')+' · Lot '+(r.LOT_NO||'')+' · '+(r.THICKNESS||'')+'mm · '+(r.SIZE||'')+'\n'+
+    'PCS Out: '+Number(r.PCS_OUT||0)+'\nTimestamp: '+(r.Timestamp||'')+'\n\n'+
+    'This will REVERSE the move out (add back '+Number(r.PCS_OUT||0)+' pcs to stock).\nThis cannot be undone.'))return;
+  try{
+    const result=await api('deleteOutputEntry',{
+      Timestamp:r.Timestamp,
+      MATERIAL_CODE:r.MATERIAL_CODE,
+      LOT_NO:r.LOT_NO,
+      user:currentUser
+    });
+    showToast('✓ Move out deleted. Stock restored by '+result.pcs_restored+' pcs.','success');
+    loadRecentOutputs();
+    const data=await api('getInventory');
+    stockRows=data.rows||[];inventoryRows=stockRows.filter(x=>Number(x.PIECES_REMAINING)>0);
+    rebuildStockByCode();updateOutputKpis();filterOutput();renderStockViewer();
+    loadOutputEditLogs();  // auto-refresh
+  }catch(e){showToast('Delete failed: '+e.message,'error');}
+}
+
+// ── RECENT OUTPUTS (Move Outs) ────────────────────────────────
+function initRecentOutputs(){
+  const now=new Date();const pad=n=>String(n).padStart(2,'0');const fmt=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  const weekAgo=new Date(now);weekAgo.setDate(now.getDate()-7);
+  document.getElementById('ro-from').value=fmt(weekAgo);document.getElementById('ro-to').value=fmt(now);
+  setRoPreset('24h');
+}
+
+function setRoPreset(preset){
+  const now=new Date();const pad=n=>String(n).padStart(2,'0');const fmt=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  ['roPresetBtn24h','roPresetBtnToday','roPresetBtnWeek'].forEach(id=>{const el=document.getElementById(id);if(el)el.className='btn btn-outline btn-sm';});
+  if(preset==='24h'){const y=new Date(now);y.setDate(now.getDate()-1);document.getElementById('ro-from').value=fmt(y);document.getElementById('ro-to').value=fmt(now);document.getElementById('roPresetBtn24h').className='btn btn-dark btn-sm';}
+  else if(preset==='today'){document.getElementById('ro-from').value=document.getElementById('ro-to').value=fmt(now);document.getElementById('roPresetBtnToday').className='btn btn-dark btn-sm';}
+  else if(preset==='week'){const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));document.getElementById('ro-from').value=fmt(mon);document.getElementById('ro-to').value=fmt(now);document.getElementById('roPresetBtnWeek').className='btn btn-dark btn-sm';}
+  loadRecentOutputs();
+}
+
+async function loadRecentOutputs(){
+  const from=document.getElementById('ro-from')?.value;const to=document.getElementById('ro-to')?.value;
+  if(!from||!to){showToast('Select a date range','error');return;}
+  const spinner=document.getElementById('roSpinnerWrap');const tbody=document.getElementById('roTbody');
+  if(spinner)spinner.style.display='inline-block';
+  tbody.innerHTML='<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>';
+  try{
+    const data=await api('getSummary',{from,to});
+    const rows=(data.outputs||[]).slice().reverse();
+    if(rows.length===0){tbody.innerHTML='<tr class="empty-row"><td colspan="12">No move outs in this range</td></tr>';}
+    else{tbody.innerHTML=rows.map(r=>`<tr>
+      <td class="mono" style="font-size:11px;color:var(--muted)">${r.Timestamp||'—'}</td>
+      <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td>
+      <td>${brandCell(r.BRAND)}</td>
+      <td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td>
+      <td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
+      <td class="num num-red">${Number(r.PCS_OUT||0)}</td>
+      <td class="mono" style="color:var(--red)">${Number(r.SQM||0).toFixed(4)}</td>
+      <td class="mono" style="color:var(--red)">${Number(r.NA||0).toFixed(4)}</td>
+      <td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-outline btn-sm" onclick="openOutputEditModal(${JSON.stringify(r).replace(/"/g,'&quot;')})" style="font-size:10px;padding:3px 8px;color:var(--red);border-color:var(--red)">✎ Edit</button>
+        <button class="btn btn-outline btn-sm" onclick="confirmDeleteOutput(${JSON.stringify(r).replace(/"/g,'&quot;')})" style="font-size:10px;padding:3px 8px;color:var(--red);border-color:var(--red)">✕ Del</button>
+      </td>
+    </tr>`).join('');}
+  }catch(e){tbody.innerHTML='<tr class="empty-row"><td colspan="12">Load failed: '+e.message+'</td></tr>';showToast('Load failed: '+e.message,'error');}
+  if(spinner)spinner.style.display='none';
+}
+
+// ── EDIT OUTPUT PCS MODAL ─────────────────────────────────────
+let editingOutputRow=null;
+
+function openOutputEditModal(r){
+  editingOutputRow=r;
+  document.getElementById('eom-code').textContent=r.MATERIAL_CODE||'—';
+  document.getElementById('eom-info').textContent=(r.BRAND||'—')+' · Lot '+(r.LOT_NO||'—')+' · '+(r.THICKNESS||'—')+'mm · '+(r.SIZE||'—');
+  document.getElementById('eom-ts').textContent='Timestamp: '+(r.Timestamp||'—');
+  document.getElementById('eom-pcs').value=r.PCS_OUT||0;
+  document.getElementById('eom-old-pcs').textContent=r.PCS_OUT||0;
+  document.getElementById('eom-new-pcs').textContent=r.PCS_OUT||0;
+  document.getElementById('eom-preview').style.display='none';
+  document.getElementById('editOutputModal').style.display='flex';
+}
+
+function closeOutputEditModal(){document.getElementById('editOutputModal').style.display='none';editingOutputRow=null;}
+
+function calcOutputEditPreview(){
+  const pcs=Number(document.getElementById('eom-pcs').value||0);
+  const old=Number(editingOutputRow?editingOutputRow.PCS_OUT:0);
+  document.getElementById('eom-old-pcs').textContent=old;
+  document.getElementById('eom-new-pcs').textContent=pcs;
+  document.getElementById('eom-preview').style.display='block';
+}
+
+async function saveEditedOutputPcs(){
+  if(!editingOutputRow)return;
+  const newPcs=Number(document.getElementById('eom-pcs').value||0);
+  if(isNaN(newPcs)||newPcs<0){showToast('Enter a valid PCS value','error');return;}
+  const btn=document.getElementById('eomSaveBtn');
+  document.getElementById('eomSaveTxt').style.display='none';
+  document.getElementById('eomSaveSpinner').style.display='inline';
+  btn.disabled=true;
+  try{
+    const result=await api('editOutputEntry',{
+      Timestamp:editingOutputRow.Timestamp,
+      MATERIAL_CODE:editingOutputRow.MATERIAL_CODE,
+      LOT_NO:editingOutputRow.LOT_NO,
+      NEW_PCS_OUT:newPcs,
+      user:currentUser
+    });
+    showToast('✓ Move out corrected. Old: '+result.old_pcs+' → New: '+result.new_pcs+' pcs. Stock adjusted by +'+(result.stock_delta||0)+' pcs.','success');
+    closeOutputEditModal();
+    // Reload recent outputs and inventory
+    loadRecentOutputs();
+    const data=await api('getInventory');
+    stockRows=data.rows||[];inventoryRows=stockRows.filter(r=>Number(r.PIECES_REMAINING)>0);
+    rebuildStockByCode();updateOutputKpis();filterOutput();renderStockViewer();
+    loadOutputEditLogs();  // auto-refresh
+  }catch(e){showToast('Correction failed: '+e.message,'error');}
+  document.getElementById('eomSaveTxt').style.display='inline';
+  document.getElementById('eomSaveSpinner').style.display='none';
+  btn.disabled=false;
+}
+
+// ── INPUT EDIT LOGS ───────────────────────────────────────────
+async function loadInputEditLogs(){
+  const spinner=document.getElementById('ielSpinnerWrap');const tbody=document.getElementById('ielTbody');
+  if(spinner)spinner.style.display='inline-block';
+  tbody.innerHTML='<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>';
+  try{
+    const data=await api('getInputEditLogs');
+    const rows=(data.rows||[]).slice().reverse();
+    if(rows.length===0){tbody.innerHTML='<tr class="empty-row"><td colspan="3">No input edit logs yet</td></tr>';}
+    else{tbody.innerHTML=rows.map(r=>`<tr>
+      <td class="mono" style="font-size:11px;white-space:nowrap">${r['When Was Edited']||r['Timestamp']||'—'}</td>
+      <td style="font-weight:500;color:var(--blue);font-size:12px">${r['Who Edited']||'—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${r['What Was Edited']||r['Action Details']||r['What Was Edited (Before → After / Action)']||r['What Was Edited (Before → After)']||'—'}</td>
+    </tr>`).join('');}
+  }catch(e){tbody.innerHTML='<tr class="empty-row"><td colspan="3">Load failed: '+e.message+'</td></tr>';showToast('Load failed: '+e.message,'error');}
+  if(spinner)spinner.style.display='none';
+}
+
+// ── OUTPUT EDIT LOGS ──────────────────────────────────────────
+async function loadOutputEditLogs(){
+  const spinner=document.getElementById('oelSpinnerWrap');const tbody=document.getElementById('oelTbody');
+  if(spinner)spinner.style.display='inline-block';
+  tbody.innerHTML='<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>';
+  try{
+    const data=await api('getOutputEditLogs');
+    const rows=(data.rows||[]).slice().reverse();
+    if(rows.length===0){tbody.innerHTML='<tr class="empty-row"><td colspan="3">No output edit logs yet</td></tr>';}
+    else{tbody.innerHTML=rows.map(r=>`<tr>
+      <td class="mono" style="font-size:11px;white-space:nowrap">${r['When Was Edited']||r['Timestamp']||'—'}</td>
+      <td style="font-weight:500;color:var(--blue);font-size:12px">${r['Who Edited']||'—'}</td>
+      <td style="font-size:12px;color:var(--text2)">${r['What Was Edited']||r['Action Details']||r['What Was Edited (Before → After / Action)']||r['What Was Edited (Before → After)']||'—'}</td>
+    </tr>`).join('');}
+  }catch(e){tbody.innerHTML='<tr class="empty-row"><td colspan="3">Load failed: '+e.message+'</td></tr>';showToast('Load failed: '+e.message,'error');}
+  if(spinner)spinner.style.display='none';
 }
 
 // ── INIT ─────────────────────────────────────────────────────
