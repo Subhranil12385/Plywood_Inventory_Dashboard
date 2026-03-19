@@ -12,6 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -196,6 +198,25 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 .dispatch-preview .dp-row:last-child{border-bottom:none;}
 .dispatch-preview .dp-label{color:var(--muted);font-size:12px;}
 .gap-section{margin-bottom:20px;}
+#chart-container{height:400px;position:relative;margin-top:20px;}
+#qr-reader{width:100%;max-width:400px;margin:0 auto;border-radius:var(--r-md);overflow:hidden;}
+#qr-reader__dashboard_section_csr button{padding:8px 16px;background:var(--amber);color:#fff;border:none;border-radius:var(--r-sm);cursor:pointer;margin:5px;}
+#qr-reader__scan_region{background:#000;}
+.qr-result-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:16px;margin-top:16px;}
+.qr-lot-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;border-bottom:2px solid var(--amber);display:inline-block;}
+.qr-item{border-left:5px solid #ccc;padding:12px;margin-bottom:12px;background:var(--surface);border-radius:0 6px 6px 0;box-shadow:0 1px 3px rgba(0,0,0,0.05);border-top:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);display:flex;justify-content:space-between;align-items:flex-start;}
+.qr-item-brand{font-weight:700;font-size:14px;display:inline-block;padding:1px 6px;border-radius:3px;margin-bottom:4px;}
+.qr-item-specs{color:var(--muted);font-size:12px;}
+.qr-item-extra{font-size:10px;color:var(--muted);margin-top:4px;display:flex;flex-direction:column;gap:2px;}
+.qr-item-pcs{font-weight:700;color:var(--green);font-family:var(--mono);font-size:16px;}
+.collapsible{background:var(--surface2);border-radius:var(--r-md);border:1px solid var(--border);margin-bottom:16px;}
+.collapsible-header{padding:12px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;}
+.collapsible-header:hover{background:var(--bg);}
+.collapsible-content{padding:0 16px 16px;display:none;}
+.collapsible-content.open{display:block;}
+.collapsible-arrow{transition:transform 0.2s;}
+.collapsible-arrow.open{transform:rotate(90deg);}
+
 /* Master Data section styles */
 .master-section{margin-bottom:20px;}
 @media(max-width:768px){.page{padding:16px 14px 40px;}.form-row{grid-template-columns:1fr 1fr;}.kpi-row{grid-template-columns:1fr 1fr;}.lot-grid{grid-template-columns:1fr 1fr;}.topbar-logo{font-size:15px;margin-right:16px;}.tab-btn span{display:none;}}
@@ -235,6 +256,14 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
         <div class="ls-icon-label">Master</div>
         <div class="ls-icon-sub">Master data for Admins</div>
       </div>
+    </div>
+
+    <!-- Quick Scan Button -->
+    <div style="margin-top:24px;text-align:center">
+      <button class="btn btn-outline" style="width:100%;max-width:240px;border-color:var(--amber);color:var(--amber);background:rgba(217,119,6,0.05)" onclick="openQrScanner()">
+        📷 Quick Scan Lot QR
+      </button>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">Scan and view lot contents without logging in</div>
     </div>
 
     <!-- Password box (shown after selecting a section) -->
@@ -288,6 +317,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
         <div class="page-sub">Add plywood batches to inventory</div>
       </div>
       <div style="display:flex;gap:10px">
+        <button class="btn btn-outline btn-sm" onclick="openQrScanner()">📷 Scan Lot</button>
         <button class="btn btn-outline btn-sm" id="headerRefreshBtn" onclick="loadStockViewer()">
           <span id="headerRefreshTxt">⟳ Refresh Stock</span>
           <span id="headerRefreshSpinner" style="display:none;width:12px;height:12px;border:2px solid rgba(0,0,0,0.15);border-top-color:var(--amber);border-radius:50%;animation:spin 0.6s linear infinite"></span>
@@ -377,18 +407,21 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 
     <!-- INPUT EDIT LOGS -->
     <div class="card gap-section" id="inputEditLogsCard">
-      <div class="card-header">
+      <div class="card-header" onclick="toggleEditLogs('iel')" style="cursor:pointer;user-select:none;">
         <div class="card-title">
+          <span id="ielChevron" style="font-size:12px;transition:transform .2s;display:inline-block;margin-right:2px;">▶</span>
           📋 Input Edit History (Dashboard Logs)
           <span id="ielSpinnerWrap" style="display:none"><span class="spinner"></span></span>
         </div>
-        <button class="btn btn-outline btn-sm" onclick="loadInputEditLogs()">⟳ Refresh</button>
+        <button class="btn btn-outline btn-sm" id="ielRefreshBtn" onclick="event.stopPropagation();loadInputEditLogs();expandEditLogs('iel')" style="display:none;">⟳ Refresh</button>
       </div>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>When Was Edited</th><th>Who Edited</th><th>What Was Edited</th></tr></thead>
-          <tbody id="ielTbody"><tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)">Click Refresh to load logs</td></tr></tbody>
-        </table>
+      <div id="ielCollapsible" style="display:none;">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>When Was Edited</th><th>Who Edited</th><th>What Was Edited</th></tr></thead>
+            <tbody id="ielTbody"><tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)">Click Refresh to load logs</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -422,10 +455,13 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
   <div class="page" id="page-output">
     <div class="page-header">
       <div><div class="page-title">Stock Output</div><div class="page-sub">Issue plywood from inventory (Move out)</div></div>
-      <button class="btn btn-outline btn-sm" id="refreshInvBtn" onclick="loadInventory()">
-        <span id="refreshInvTxt">⟳ Refresh Inventory</span>
-        <span id="refreshInvSpinner" style="display:none;vertical-align:middle"><span style="display:inline-block;width:11px;height:11px;border:2px solid rgba(0,0,0,0.15);border-top-color:var(--text);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:4px"></span>Loading…</span>
-      </button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline btn-sm" onclick="openQrScanner()">📷 Scan Lot</button>
+        <button class="btn btn-outline btn-sm" id="refreshInvBtn" onclick="loadInventory()">
+          <span id="refreshInvTxt">⟳ Refresh Inventory</span>
+          <span id="refreshInvSpinner" style="display:none;vertical-align:middle"><span style="display:inline-block;width:11px;height:11px;border:2px solid rgba(0,0,0,0.15);border-top-color:var(--text);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:4px"></span>Loading…</span>
+        </button>
+      </div>
     </div>
     <div class="kpi-row" id="outputKpiRow">
       <div class="kpi-card blue"><div class="kpi-label">Total Lots</div><div class="kpi-val" id="kpi-lots">—</div><div class="kpi-sub">lots with stock</div></div>
@@ -443,6 +479,13 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <div class="form-group"><label class="form-label">Brand</label><select class="form-control" id="out-brand" onchange="filterOutput()"><option value="">All Brands</option></select></div>
           <div class="form-group"><label class="form-label">Thickness (mm)</label><select class="form-control" id="out-thick" onchange="filterOutput()"><option value="">All Thickness</option></select></div>
           <div class="form-group"><label class="form-label">Size</label><select class="form-control" id="out-size" onchange="filterOutput()"><option value="">All Sizes</option></select></div>
+          <div class="form-group"><label class="form-label">Sort Order</label>
+            <select class="form-control" id="out-sort" onchange="filterOutput()">
+              <option value="fifo" selected>FIFO (Oldest first)</option>
+              <option value="filo">FILO (Newest first)</option>
+              <option value="entry">Same order as entered</option>
+            </select>
+          </div>
           <div class="form-group"><label class="form-label">Time window (taken out)</label><select class="form-control" id="out-window" onchange="rePaintLots()"><option value="24h" selected>Last 24 hours</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="all">All time</option></select></div>
         </div>
       </div>
@@ -505,18 +548,21 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 
     <!-- OUTPUT EDIT LOGS -->
     <div class="card gap-section" id="outputEditLogsCard" style="margin-top:20px">
-      <div class="card-header">
+      <div class="card-header" onclick="toggleEditLogs('oel')" style="cursor:pointer;user-select:none;">
         <div class="card-title">
+          <span id="oelChevron" style="font-size:12px;transition:transform .2s;display:inline-block;margin-right:2px;">▶</span>
           📋 Output Edit History (Dashboard Logs)
           <span id="oelSpinnerWrap" style="display:none"><span class="spinner"></span></span>
         </div>
-        <button class="btn btn-outline btn-sm" onclick="loadOutputEditLogs()">⟳ Refresh</button>
+        <button class="btn btn-outline btn-sm" id="oelRefreshBtn" onclick="event.stopPropagation();loadOutputEditLogs();expandEditLogs('oel')" style="display:none;">⟳ Refresh</button>
       </div>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>When Was Edited</th><th>Who Edited</th><th>What Was Edited</th></tr></thead>
-          <tbody id="oelTbody"><tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)">Click Refresh to load logs</td></tr></tbody>
-        </table>
+      <div id="oelCollapsible" style="display:none;">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>When Was Edited</th><th>Who Edited</th><th>What Was Edited</th></tr></thead>
+            <tbody id="oelTbody"><tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)">Click Refresh to load logs</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -532,6 +578,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
         <button class="btn btn-outline btn-sm" onclick="setPreset('today')">Today</button>
         <button class="btn btn-outline btn-sm" onclick="setPreset('week')">This week</button>
         <button class="btn btn-outline btn-sm" onclick="setPreset('month')">This month</button>
+        <button class="btn btn-outline btn-sm" onclick="openQrScanner()">📷 Scan Lot</button>
         <button class="btn btn-amber btn-sm" id="rptLoadBtn" onclick="loadReports()">
           <span id="rptLoadTxt">Load</span>
           <span id="rptLoadSpinner" style="display:none;vertical-align:middle"><span style="display:inline-block;width:11px;height:11px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:4px"></span>Loading…</span>
@@ -548,6 +595,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
     </div>
     <div style="display:flex;gap:8px;margin-bottom:16px">
       <button class="btn btn-dark btn-sm" onclick="showReportView('summary')" id="rptBtnSummary">📦 Stock Summary</button>
+      <button class="btn btn-outline btn-sm" onclick="showReportView('movements')" id="rptBtnMovements">🔄 Movement Record</button>
       <button class="btn btn-outline btn-sm" onclick="showReportView('inputs')" id="rptBtnInputs">📥 Inputs</button>
       <button class="btn btn-outline btn-sm" onclick="showReportView('outputs')" id="rptBtnOutputs">📤 Outputs</button>
       <button class="btn btn-outline btn-sm" onclick="showReportView('history')" id="rptBtnHistory">📋 All Transactions</button>
@@ -575,6 +623,22 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
               <td style="padding:10px 14px"></td>
             </tr>
           </tfoot>
+        </table>
+      </div>
+      <div class="card-body" id="chart-container"></div>
+    </div>
+    <div id="rpt-movements" class="card" style="display:none">
+      <div class="card-header">
+        <div class="card-title">🔄 Movement Record (Lot History)</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select class="form-control" id="rpt-mov-f-brand" style="width:auto;font-size:12px" onchange="applyMovementFilters()"><option value="">All Brands</option></select>
+          <button class="btn btn-outline btn-sm" onclick="clearMovementFilters()">✕ Clear</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Material Code</th><th>Lot No</th><th>Day Entered</th><th>Last Moved</th><th>Duration Since Last Moved</th></tr></thead>
+          <tbody id="rpt-movements-tbody"><tr class="empty-row"><td colspan="5">Click Load to fetch movement records</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -669,6 +733,18 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
   </div>
 </div>
 
+<!-- QR SCANNER MODAL -->
+<div class="modal-backdrop" id="qrModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🔍 Scan Lot QR</div><button class="btn-close" onclick="closeQrScanner()">✕</button></div>
+    <div class="modal-body">
+      <div id="qr-reader"></div>
+      <div id="qr-result" style="display:none"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeQrScanner()">Close</button></div>
+  </div>
+</div>
+
 <!-- EMAIL MODAL -->
 <div class="modal-backdrop" id="emailModal">
   <div class="modal">
@@ -752,7 +828,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 <div id="toastContainer"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyIbgalO4Sp4HrTDWHuNO_j-_SoADkbTliTe5tn2kNkQqw6rAqhqgNvnX0ag3TsWqoAAg/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdHzd6-ktztO5LAPhgV5ItHhu1zVV3VhU5QOrzoJ-0uApPcyf5EAbZI4eGCIO_zJfUUA/exec';
 
 let masterRows=[],stockRows=[],inventoryRows=[],filteredInv=[],selectedLot=null,pendingRows=[],summaryCache=null;
 let thresholdMap={},stockByCodeMap={},thresholdsReady=false;
@@ -777,6 +853,166 @@ function brandCell(brand){
   if(!c)return`<span style="font-weight:500">${brand||'—'}</span>`;
   const txt=isLightColor(c)?'#1a1714':'#ffffff';
   return`<span style="display:inline-flex;align-items:center;gap:4px;background:${c};color:${txt};padding:2px 7px;border-radius:4px;font-size:12px;font-weight:600">${brand||'—'}</span>`;
+}
+
+// ── QR SCANNER HELPERS ──────────────────────────────────────
+let html5QrCode = null;
+
+function translateSize(sizeCode) {
+  const s = String(sizeCode || '').trim();
+  if (s.length === 4) {
+    // e.g., 8040 -> 8ft x 4ft
+    const length = parseInt(s.substring(0, 2), 10) / 10;
+    const width = parseInt(s.substring(2, 4), 10) / 10;
+    return `${length}ft x ${width}ft`;
+  }
+  return s;
+}
+
+function openQrScanner() {
+  document.getElementById('qrModal').classList.add('open');
+  document.getElementById('qr-result').style.display = 'none';
+  document.getElementById('qr-reader').style.display = 'block';
+  
+  if (!html5QrCode) {
+    html5QrCode = new Html5Qrcode("qr-reader");
+  }
+  
+  const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+  html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
+}
+
+function closeQrScanner() {
+  if (html5QrCode && html5QrCode.isScanning) {
+    html5QrCode.stop().then(() => {
+      document.getElementById('qrModal').classList.remove('open');
+    });
+  } else {
+    document.getElementById('qrModal').classList.remove('open');
+  }
+}
+
+function selectLotForInput(lotNo) {
+  const lotInput = document.getElementById('in-lot');
+  if (lotInput) {
+    lotInput.value = lotNo;
+    showToast('Lot ' + lotNo + ' selected in form', 'success');
+    closeQrScanner();
+  }
+}
+
+function selectItemForOutput(materialCode, lotNo) {
+  // Find index in filteredInv (which is used by selectLot)
+  const idx = filteredInv.findIndex(r => String(r.MATERIAL_CODE).trim() === String(materialCode).trim() && String(r.LOT_NO).trim() === String(lotNo).trim());
+  if (idx >= 0) {
+    closeQrScanner();
+    selectLot(idx);
+  } else {
+    showToast('Item not found in current inventory view', 'error');
+  }
+}
+
+async function onScanSuccess(decodedText, decodedResult) {
+  // Try to extract lot from URL if it's one
+  let lotNo = String(decodedText).trim();
+  if (lotNo.includes('?lot=')) {
+    const parts = lotNo.split('?lot=');
+    lotNo = parts[1].split('&')[0];
+  }
+  
+  const activePage = document.querySelector('.page.active')?.id || '';
+  const isLoginScreen = document.getElementById('loginScreen').style.display !== 'none';
+  
+  if (html5QrCode) {
+    await html5QrCode.stop();
+  }
+  
+  document.getElementById('qr-reader').style.display = 'none';
+  const resultEl = document.getElementById('qr-result');
+  resultEl.style.display = 'block';
+  
+  // Use existing cache instead of calling API every time
+  // If caches are empty, we fetch once, but otherwise rely on local data
+  if (stockRows.length === 0) {
+    resultEl.innerHTML = '<div style="text-align:center;padding:20px"><span class="spinner"></span> Loading inventory...</div>';
+    try {
+      const data = await api('getInventory');
+      stockRows = data.rows || [];
+    } catch (e) {
+      resultEl.innerHTML = '<div class="ls-error" style="display:block">Error: '+e.message+'</div>';
+      return;
+    }
+  }
+
+  // Reports view or Login Screen view needs movements for dates/duration
+  if ((activePage === 'page-reports' || isLoginScreen) && reportMovementsCache.length === 0) {
+    resultEl.innerHTML = '<div style="text-align:center;padding:20px"><span class="spinner"></span> Loading movements...</div>';
+    try {
+      const moveData = await api('getMovements');
+      reportMovementsCache = moveData.rows || [];
+    } catch (e) {
+      // Non-critical, just warn
+      console.warn('Movement cache load failed:', e.message);
+    }
+  }
+
+  const lotItems = stockRows.filter(r => String(r.LOT_NO).trim() === lotNo && Number(r.PIECES_REMAINING) > 0);
+  
+  if (lotItems.length === 0) {
+    resultEl.innerHTML = `
+      <div class="qr-result-card">
+        <div class="qr-lot-title">Lot ${lotNo}</div>
+        <div style="color:var(--muted);text-align:center;padding:20px">No active stock found for this lot number.</div>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button class="btn btn-outline" style="flex:1" onclick="openQrScanner()">Scan Again</button>
+          ${activePage === 'page-input' ? `<button class="btn btn-amber" style="flex:1" onclick="selectLotForInput('${lotNo}')">Select Lot anyway</button>` : ''}
+        </div>
+      </div>`;
+    return;
+  }
+  
+  let html = `
+    <div class="qr-result-card">
+      <div class="qr-lot-title">Lot ${lotNo} — Contents</div>
+      <div style="max-height:400px;overflow-y:auto">`;
+      
+  lotItems.forEach(item => {
+      const move = reportMovementsCache.find(m => String(m.MATERIAL_CODE).trim() === String(item.MATERIAL_CODE).trim() && String(m.LOT_NO).trim() === String(item.LOT_NO).trim());
+      const color = brandColorMap[item.BRAND] || '#ccc';
+      const textCol = isLightColor(color) ? '#000' : '#fff';
+
+      html += `
+        <div class="qr-item" style="border-left-color:${color}">
+          <div>
+            <div class="qr-item-brand" style="background:${color};color:${textCol}">${item.BRAND}</div>
+            <div class="qr-item-specs">${item.THICKNESS}mm · ${translateSize(item.SIZE)} (${item.SIZE})</div>
+            ${(activePage === 'page-reports' || isLoginScreen) ? `
+            <div class="qr-item-extra">
+              <span>📅 Entered: ${move ? move.DAY_ENTERED : '—'}</span>
+              <span>⏱ Last Moved: ${move ? move.DURATION_FROM_LAST_MOVED : '—'}</span>
+              <span>📏 NA: ${Number(item.NA_REMAINING||0).toFixed(4)} m²</span>
+              <span>📐 SQM: ${Number(item.SQM_REMAINING||0).toFixed(4)} m²</span>
+            </div>
+          ` : ''}
+        </div>
+        <div style="text-align:right">
+          <div class="qr-item-pcs">${item.PIECES_REMAINING} pcs</div>
+          ${activePage === 'page-output' ? `
+            <button class="btn btn-xs btn-amber" style="margin-top:4px" onclick="selectItemForOutput('${item.MATERIAL_CODE}', '${item.LOT_NO}')">Select</button>
+          ` : ''}
+        </div>
+      </div>`;
+  });
+  
+  html += `
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn btn-outline" style="flex:1" onclick="openQrScanner()">Scan Another</button>
+        ${activePage === 'page-input' ? `<button class="btn btn-amber" style="flex:1" onclick="selectLotForInput('${lotNo}')">Select Lot</button>` : ''}
+      </div>
+    </div>`;
+    
+  resultEl.innerHTML = html;
 }
 
 
@@ -1294,6 +1530,17 @@ async function loadStockViewer(){
   if(hBtn)hBtn.disabled=false;if(svBtn)svBtn.disabled=false;
 }
 
+function checkNonMoving(materialCode, duration) {
+  if (!duration) return false;
+  const parts = duration.match(/(\d+)d (\d+)h/);
+  if (!parts) return false;
+  const days = parseInt(parts[1], 10);
+  const hours = parseInt(parts[2], 10);
+  const totalHours = days * 24 + hours;
+  const threshold = masterRows.find(r => r.MATERIAL_CODE === materialCode)?.NON_MOVING_STOCK_HOURS || 0;
+  return totalHours > threshold;
+}
+
 function renderStockViewer(){
   const brand=document.getElementById('sv-brand').value;
   const size=document.getElementById('sv-size').value;
@@ -1306,6 +1553,7 @@ function renderStockViewer(){
     const lvl=alertLevel(r.MATERIAL_CODE);
     const pcsCol=pcs>20?'num-green':pcs>5?'num-amber':'num-red';
     const alertPill=lvl==='red'?'<span class="alert-pill alert-pill-red" style="margin-left:6px">▼ Below min</span>':lvl==='yellow'?'<span class="alert-pill alert-pill-yellow" style="margin-left:6px">≈ Near min</span>':'';
+    const isNonMoving = checkNonMoving(r.MATERIAL_CODE, r.DURATION_FROM_LAST_MOVED);
     return`<tr class="${lvl==='red'?'row-red':lvl==='yellow'?'row-yellow':''}">
       <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td>
       <td>${brandCell(r.BRAND)}</td>
@@ -1349,7 +1597,20 @@ function filterOutput(){
   const brand=document.getElementById('out-brand').value;
   const thick=document.getElementById('out-thick').value;
   const size=document.getElementById('out-size').value;
+  const sort=document.getElementById('out-sort')?.value || 'fifo';
+
   filteredInv=inventoryRows.filter(r=>(!brand||r.BRAND===brand)&&(!thick||String(r.THICKNESS||'')===thick)&&(!size||String(r.SIZE||'')===size));
+  
+  // Apply sorting
+  if (sort === 'fifo') {
+    filteredInv.sort((a, b) => String(a.Timestamp || '').localeCompare(String(b.Timestamp || '')));
+  } else if (sort === 'filo') {
+    filteredInv.sort((a, b) => String(b.Timestamp || '').localeCompare(String(a.Timestamp || '')));
+  } else if (sort === 'entry') {
+    // Already in entry order from inventoryRows, but we can re-sort by _rowIndex if available
+    filteredInv.sort((a, b) => (a._rowIndex || 0) - (b._rowIndex || 0));
+  }
+
   const sub=document.getElementById('lotsSubtitle');
   const parts=[brand,thick?thick+'mm':'',size].filter(Boolean);
   sub.textContent=(parts.length?parts.join(' · ')+' — ':'')+filteredInv.length+' lot'+(filteredInv.length!==1?'s':'')+' available';
@@ -1359,6 +1620,8 @@ function filterOutput(){
 
 function clearOutputSearch(){
   ['out-brand','out-thick','out-size'].forEach(id=>document.getElementById(id).value='');
+  const sortEl = document.getElementById('out-sort');
+  if(sortEl) sortEl.value='fifo';
   filteredInv=[];selectedLot=null;
   document.getElementById('lotsSection').style.display='none';document.getElementById('dispatchCard').style.display='none';
 }
@@ -1455,15 +1718,110 @@ function setPreset(preset){
   loadReports();
 }
 
+let stockChartInstance = null;
+async function renderStockChart(data) {
+  const chartContainer = document.getElementById('chart-container');
+  if (!chartContainer) return;
+  
+  chartContainer.innerHTML = ''; // Clear previous chart
+  const canvas = document.createElement('canvas');
+  chartContainer.appendChild(canvas);
+
+  const ctx = canvas.getContext('2d');
+
+  // Filter out zero pieces just in case
+  const filteredData = data.filter(d => Number(d.PIECES_REMAINING) > 0);
+  if (filteredData.length === 0) {
+    chartContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted)">No stock data for chart</div>';
+    return;
+  }
+
+  const lots = [...new Set(filteredData.map(item => String(item.LOT_NO)))].sort((a,b) => Number(a) - Number(b));
+  const brands = [...new Set(filteredData.map(item => item.BRAND))].sort();
+
+  const datasets = brands.map(brand => {
+    const color = brandColorMap[brand] || '#ccc';
+    return {
+      label: brand,
+      data: lots.map(lot => {
+        const item = filteredData.find(d => String(d.LOT_NO) === lot && d.BRAND === brand);
+        return item ? Number(item.PIECES_REMAINING) : 0;
+      }),
+      backgroundColor: color,
+      borderColor: 'rgba(0,0,0,0.1)',
+      borderWidth: 1
+    };
+  });
+
+  if (stockChartInstance) {
+    stockChartInstance.destroy();
+  }
+
+  stockChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: lots.map(l => 'Lot ' + l),
+      datasets: datasets,
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          stacked: true,
+          title: { display: true, text: 'Lot Number' }
+        },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          title: { display: true, text: 'Pieces Remaining' }
+        },
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                label += context.parsed.y + ' pcs';
+              }
+              return label;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
 async function loadReports(){
   const from=document.getElementById('rpt-from').value;const to=document.getElementById('rpt-to').value;
   if(!from||!to){showToast('Select a date range','error');return;}
   const lb=document.getElementById('rptLoadBtn');const lt=document.getElementById('rptLoadTxt');const ls=document.getElementById('rptLoadSpinner');
   if(lb)lb.disabled=true;if(lt)lt.style.display='none';if(ls)ls.style.display='inline';
   try{
-    const[summaryData,txData]=await Promise.all([api('getSummary',{from,to}),api('getTransactions',{from,to})]);
-    summaryCache=summaryData;summaryCache._transactions=txData.rows||[];
-    renderReports(summaryCache);showToast('Reports loaded','info');
+    const[summaryData,txData,moveData]=await Promise.all([
+      api('getSummary',{from,to}),
+      api('getTransactions',{from,to}),
+      api('getMovements')
+    ]);
+    summaryCache=summaryData;
+    summaryCache._transactions=txData.rows||[];
+    reportMovementsCache=moveData.rows||[];
+    renderReports(summaryCache);
+    renderMovementRows(reportMovementsCache);
+    if (summaryCache && summaryCache.stock) {
+      renderStockChart(summaryCache.stock);
+    }
+    showToast('Reports loaded','info');
   }catch(e){showToast('Load failed: '+e.message,'error');}
   if(lb)lb.disabled=false;if(lt)lt.style.display='inline';if(ls)ls.style.display='none';
 }
@@ -1495,11 +1853,43 @@ function renderReports(data){
 
 function showReportView(view){
   currentReportView=view;
-  ['summary','inputs','outputs','history'].forEach(v=>{
-    document.getElementById('rpt-'+v).style.display=v===view?'block':'none';
+  ['summary','movements','inputs','outputs','history'].forEach(v=>{
+    const el = document.getElementById('rpt-'+v);
+    if(el) el.style.display=v===view?'block':'none';
     const btn=document.getElementById('rptBtn'+v.charAt(0).toUpperCase()+v.slice(1));
     if(btn)btn.className=v===view?'btn btn-dark btn-sm':'btn btn-outline btn-sm';
   });
+}
+
+let reportMovementsCache=[];
+function renderMovementRows(rows){
+  const tbody = document.getElementById('rpt-movements-tbody');
+  if(!tbody) return;
+  if(rows.length===0){
+    tbody.innerHTML='<tr class="empty-row"><td colspan="5">No movement records found</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><span class="badge badge-code">${r.MATERIAL_CODE}</span></td>
+      <td class="mono">${r.LOT_NO}</td>
+      <td class="mono" style="color:var(--muted);font-size:11px">${r.DAY_ENTERED}</td>
+      <td class="mono" style="color:var(--muted);font-size:11px">${r.LAST_MOVED}</td>
+      <td class="mono" style="font-weight:600">${r.DURATION_FROM_LAST_MOVED || '-'}</td>
+    </tr>
+  `).join('');
+}
+
+function applyMovementFilters(){
+  const brand = document.getElementById('rpt-mov-f-brand')?.value || '';
+  // Movements don't directly have brand, so we might need to join or just filter by code initials if we had them.
+  // For now, let's just render all since joining is complex here.
+  renderMovementRows(reportMovementsCache);
+}
+function clearMovementFilters(){
+  const el = document.getElementById('rpt-mov-f-brand');
+  if(el) el.value='';
+  renderMovementRows(reportMovementsCache);
 }
 
 function renderReportSummaryTable(rows){
@@ -2479,6 +2869,32 @@ async function loadOutputEditLogs(){
     </tr>`).join('');}
   }catch(e){tbody.innerHTML='<tr class="empty-row"><td colspan="3">Load failed: '+e.message+'</td></tr>';showToast('Load failed: '+e.message,'error');}
   if(spinner)spinner.style.display='none';
+}
+
+// ── EDIT LOG DROPDOWN TOGGLE ──────────────────────────────────
+function toggleEditLogs(prefix){
+  const collapsible=document.getElementById(prefix+'Collapsible');
+  const chevron=document.getElementById(prefix+'Chevron');
+  const refreshBtn=document.getElementById(prefix+'RefreshBtn');
+  const isOpen=collapsible.style.display!=='none';
+  if(isOpen){
+    collapsible.style.display='none';
+    chevron.style.transform='rotate(0deg)';
+    if(refreshBtn)refreshBtn.style.display='none';
+  } else {
+    collapsible.style.display='block';
+    chevron.style.transform='rotate(90deg)';
+    if(refreshBtn)refreshBtn.style.display='';
+  }
+}
+
+function expandEditLogs(prefix){
+  const collapsible=document.getElementById(prefix+'Collapsible');
+  const chevron=document.getElementById(prefix+'Chevron');
+  const refreshBtn=document.getElementById(prefix+'RefreshBtn');
+  collapsible.style.display='block';
+  chevron.style.transform='rotate(90deg)';
+  if(refreshBtn)refreshBtn.style.display='';
 }
 
 // ── INIT ─────────────────────────────────────────────────────
