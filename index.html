@@ -204,11 +204,11 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 #qr-reader__scan_region{background:#000;}
 .qr-result-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:16px;margin-top:16px;}
 .qr-lot-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:12px;border-bottom:2px solid var(--amber);display:inline-block;}
-.qr-item{border-left:5px solid #ccc;padding:12px;margin-bottom:12px;background:var(--surface);border-radius:0 6px 6px 0;box-shadow:0 1px 3px rgba(0,0,0,0.05);border-top:1px solid var(--border2);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);display:flex;justify-content:space-between;align-items:flex-start;}
-.qr-item-brand{font-weight:700;font-size:14px;display:inline-block;padding:1px 6px;border-radius:3px;margin-bottom:4px;}
-.qr-item-specs{color:var(--muted);font-size:12px;}
-.qr-item-extra{font-size:10px;color:var(--muted);margin-top:4px;display:flex;flex-direction:column;gap:2px;}
-.qr-item-pcs{font-weight:700;color:var(--green);font-family:var(--mono);font-size:16px;}
+.qr-item{border-left:5px solid #ccc;padding:12px;margin-bottom:12px;border-radius:0 6px 6px 0;box-shadow:0 1px 3px rgba(0,0,0,0.05);border-top:1px solid rgba(0,0,0,0.08);border-right:1px solid rgba(0,0,0,0.08);border-bottom:1px solid rgba(0,0,0,0.08);display:flex;justify-content:space-between;align-items:flex-start;transition:all 0.2s;}
+.qr-item-brand{font-weight:700;font-size:14px;margin-bottom:4px;}
+.qr-item-specs{font-size:12px;}
+.qr-item-extra{font-size:10px;margin-top:4px;display:flex;flex-direction:column;gap:2px;}
+.qr-item-pcs{font-weight:700;font-family:var(--mono);font-size:16px;}
 .collapsible{background:var(--surface2);border-radius:var(--r-md);border:1px solid var(--border);margin-bottom:16px;}
 .collapsible-header{padding:12px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;}
 .collapsible-header:hover{background:var(--bg);}
@@ -869,10 +869,20 @@ function translateSize(sizeCode) {
   return s;
 }
 
-function openQrScanner() {
+async function openQrScanner() {
   document.getElementById('qrModal').classList.add('open');
   document.getElementById('qr-result').style.display = 'none';
   document.getElementById('qr-reader').style.display = 'block';
+  
+  // Load brand colors if not already loaded (important for login screen)
+  if (Object.keys(brandColorMap).length === 0) {
+    try {
+      const colorData = await api('getBrandColors');
+      brandColorMap = colorData.colors || {};
+    } catch (e) {
+      console.warn('Could not load brand colors:', e.message);
+    }
+  }
   
   if (!html5QrCode) {
     html5QrCode = new Html5Qrcode("qr-reader");
@@ -944,18 +954,6 @@ async function onScanSuccess(decodedText, decodedResult) {
     }
   }
 
-  // Reports view or Login Screen view needs movements for dates/duration
-  if ((activePage === 'page-reports' || isLoginScreen) && reportMovementsCache.length === 0) {
-    resultEl.innerHTML = '<div style="text-align:center;padding:20px"><span class="spinner"></span> Loading movements...</div>';
-    try {
-      const moveData = await api('getMovements');
-      reportMovementsCache = moveData.rows || [];
-    } catch (e) {
-      // Non-critical, just warn
-      console.warn('Movement cache load failed:', e.message);
-    }
-  }
-
   const lotItems = stockRows.filter(r => String(r.LOT_NO).trim() === lotNo && Number(r.PIECES_REMAINING) > 0);
   
   if (lotItems.length === 0) {
@@ -971,6 +969,24 @@ async function onScanSuccess(decodedText, decodedResult) {
     return;
   }
   
+  // Render content immediately with what we have
+  renderQrLotContent(lotNo, lotItems, activePage, isLoginScreen, resultEl);
+  
+  // Load movements in background and update silently (only for reports/login screen)
+  if ((activePage === 'page-reports' || isLoginScreen) && reportMovementsCache.length === 0) {
+    // Don't block - load in background
+    api('getMovements').then(moveData => {
+      reportMovementsCache = moveData.rows || [];
+      // Re-render with movement data now available
+      renderQrLotContent(lotNo, lotItems, activePage, isLoginScreen, resultEl);
+    }).catch(e => {
+      console.warn('Movement cache load failed:', e.message);
+    });
+  }
+}
+
+// Helper function to render QR lot content (can be called multiple times)
+function renderQrLotContent(lotNo, lotItems, activePage, isLoginScreen, resultEl) {
   let html = `
     <div class="qr-result-card">
       <div class="qr-lot-title">Lot ${lotNo} — Contents</div>
@@ -978,16 +994,16 @@ async function onScanSuccess(decodedText, decodedResult) {
       
   lotItems.forEach(item => {
       const move = reportMovementsCache.find(m => String(m.MATERIAL_CODE).trim() === String(item.MATERIAL_CODE).trim() && String(m.LOT_NO).trim() === String(item.LOT_NO).trim());
-      const color = brandColorMap[item.BRAND] || '#ccc';
-      const textCol = isLightColor(color) ? '#000' : '#fff';
+      const color = brandColorMap[item.BRAND] || '#e8e4de';
+      const textCol = isLightColor(color) ? '#1a1714' : '#ffffff';
 
       html += `
-        <div class="qr-item" style="border-left-color:${color}">
+        <div class="qr-item" style="background:${color};color:${textCol};border-left-color:${color}">
           <div>
-            <div class="qr-item-brand" style="background:${color};color:${textCol}">${item.BRAND}</div>
-            <div class="qr-item-specs">${item.THICKNESS}mm · ${translateSize(item.SIZE)} (${item.SIZE})</div>
+            <div class="qr-item-brand" style="font-weight:700;font-size:14px;margin-bottom:4px;">${item.BRAND}</div>
+            <div class="qr-item-specs" style="color:${isLightColor(color) ? '#4a4540' : 'rgba(255,255,255,0.85)'};">${item.THICKNESS}mm · ${translateSize(item.SIZE)} (${item.SIZE})</div>
             ${(activePage === 'page-reports' || isLoginScreen) ? `
-            <div class="qr-item-extra">
+            <div class="qr-item-extra" style="color:${isLightColor(color) ? '#8a8480' : 'rgba(255,255,255,0.75)'};">
               <span>📅 Entered: ${move ? move.DAY_ENTERED : '—'}</span>
               <span>⏱ Last Moved: ${move ? move.DURATION_FROM_LAST_MOVED : '—'}</span>
               <span>📏 NA: ${Number(item.NA_REMAINING||0).toFixed(4)} m²</span>
@@ -996,7 +1012,7 @@ async function onScanSuccess(decodedText, decodedResult) {
           ` : ''}
         </div>
         <div style="text-align:right">
-          <div class="qr-item-pcs">${item.PIECES_REMAINING} pcs</div>
+          <div class="qr-item-pcs" style="color:${isLightColor(color) ? '#059669' : '#4ade80'};">${item.PIECES_REMAINING} pcs</div>
           ${activePage === 'page-output' ? `
             <button class="btn btn-xs btn-amber" style="margin-top:4px" onclick="selectItemForOutput('${item.MATERIAL_CODE}', '${item.LOT_NO}')">Select</button>
           ` : ''}
