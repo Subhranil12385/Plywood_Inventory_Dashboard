@@ -1,8 +1,4 @@
 <!DOCTYPE html>
-<!--
-  PLYWOOD INVENTORY DASHBOARD v22
-  MASTER PASSWORD ACCESS: Master password can now access all screens
--->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -405,25 +401,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       </div>
     </div>
 
-    <!-- INPUT EDIT LOGS -->
-    <div class="card gap-section" id="inputEditLogsCard">
-      <div class="card-header" onclick="toggleEditLogs('iel')" style="cursor:pointer;user-select:none;">
-        <div class="card-title">
-          <span id="ielChevron" style="font-size:12px;transition:transform .2s;display:inline-block;margin-right:2px;">▶</span>
-          📋 Input Edit History (Dashboard Logs)
-          <span id="ielSpinnerWrap" style="display:none"><span class="spinner"></span></span>
-        </div>
-        <button class="btn btn-outline btn-sm" id="ielRefreshBtn" onclick="event.stopPropagation();loadInputEditLogs();expandEditLogs('iel')" style="display:none;">⟳ Refresh</button>
-      </div>
-      <div id="ielCollapsible" style="display:none;">
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr><th>When Was Edited</th><th>Who Edited</th><th>What Was Edited</th></tr></thead>
-            <tbody id="ielTbody"><tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)">Click Refresh to load logs</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    
 
     <div class="card">
       <div class="card-header">
@@ -447,6 +425,28 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <thead><tr><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS Remaining</th><th>SQM Remaining</th><th>NA Remaining</th><th>Updated</th><th>User</th></tr></thead>
           <tbody id="svTbody"><tr><td colspan="11" style="text-align:center;padding:32px;color:var(--muted)">Loading stock…</td></tr></tbody>
         </table>
+      </div>
+    </div>
+  
+
+
+<!-- INPUT EDIT LOGS -->
+    <div class="card gap-section" id="inputEditLogsCard">
+      <div class="card-header" onclick="toggleEditLogs('iel')" style="cursor:pointer;user-select:none;">
+        <div class="card-title">
+          <span id="ielChevron" style="font-size:12px;transition:transform .2s;display:inline-block;margin-right:2px;">▶</span>
+          📋 Input Edit History (Dashboard Logs)
+          <span id="ielSpinnerWrap" style="display:none"><span class="spinner"></span></span>
+        </div>
+        <button class="btn btn-outline btn-sm" id="ielRefreshBtn" onclick="event.stopPropagation();loadInputEditLogs();expandEditLogs('iel')" style="display:none;">⟳ Refresh</button>
+      </div>
+      <div id="ielCollapsible" style="display:none;">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>When Was Edited</th><th>Who Edited</th><th>What Was Edited</th></tr></thead>
+            <tbody id="ielTbody"><tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)">Click Refresh to load logs</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -607,6 +607,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <select class="form-control" id="rpt-f-brand" style="width:auto;font-size:12px" onchange="applyReportFilters()"><option value="">All Brands</option></select>
           <select class="form-control" id="rpt-f-size" style="width:auto;font-size:12px" onchange="applyReportFilters()"><option value="">All Sizes</option></select>
           <select class="form-control" id="rpt-f-thick" style="width:auto;font-size:12px" onchange="applyReportFilters()"><option value="">All Thickness</option></select>
+<input type="number" class="form-control" id="rpt-f-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="applyReportFilters()">
           <button class="btn btn-outline btn-sm" onclick="clearReportFilters()">✕ Clear</button>
         </div>
       </div>
@@ -632,9 +633,11 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
         <div class="card-title">🔄 Movement Record (Lot History)</div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <select class="form-control" id="rpt-mov-f-brand" style="width:auto;font-size:12px" onchange="applyMovementFilters()"><option value="">All Brands</option></select>
+<input type="number" class="form-control" id="rpt-mov-f-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="applyMovementFilters()">
           <button class="btn btn-outline btn-sm" onclick="clearMovementFilters()">✕ Clear</button>
         </div>
-      </div>
+</div>  <!-- closes rpt-summary card-header -->
+      <div id="reconcileResultPanel" style="display:none;background:var(--blue-lt);border:1px solid var(--blue);border-radius:var(--r-md);padding:12px 16px;margin:0 20px 12px;max-height:200px;overflow-y:auto"></div>
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr><th>Material Code</th><th>Lot No</th><th>Day Entered</th><th>Last Moved</th><th>Duration Since Last Moved</th></tr></thead>
@@ -654,6 +657,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
             <option value="pcs-desc">⬇ PCS In</option><option value="pcs-asc">⬆ PCS In</option>
             <option value="brand-asc">A→Z Brand</option>
           </select>
+<input type="number" class="form-control" id="rpt-in-f-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="applyInputFilters()">
           <button class="btn btn-outline btn-sm" onclick="clearInputFilters()">✕ Clear</button>
         </div>
       </div>
@@ -681,6 +685,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
             <option value="pcs-desc">⬇ PCS Out</option><option value="pcs-asc">⬆ PCS Out</option>
             <option value="brand-asc">A→Z Brand</option>
           </select>
+<input type="number" class="form-control" id="rpt-out-f-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="applyOutputFilters()">
           <button class="btn btn-outline btn-sm" onclick="clearOutputFilters()">✕ Clear</button>
         </div>
       </div>
@@ -710,6 +715,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
             <option value="ts-asc">⬆ Time (oldest)</option><option value="ts-desc">⬇ Time (newest)</option>
             <option value="pcs-desc">⬇ PCS</option><option value="brand-asc">A→Z Brand</option>
           </select>
+<input type="number" class="form-control" id="rpt-hist-f-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="applyHistoryFilters()">
           <button class="btn btn-outline btn-sm" onclick="clearHistoryFilters()">✕ Clear</button>
         </div>
       </div>
@@ -1801,17 +1807,11 @@ async function renderStockChart(data) {
           mode: 'index',
           intersect: false,
           callbacks: {
-            label: function(context) {
-              let label = context.dataset.label || '';
-              if (label) {
-                label += ': ';
-              }
-              if (context.parsed.y !== null) {
-                label += context.parsed.y + ' pcs';
-              }
-              return label;
-            }
-          }
+  label: function(context) {
+    if (!context.parsed.y || context.parsed.y === 0) return null;
+    return (context.dataset.label || '') + ': ' + context.parsed.y + ' pcs';
+  }
+}
         }
       }
     }
@@ -1897,14 +1897,14 @@ function renderMovementRows(rows){
 }
 
 function applyMovementFilters(){
-  const brand = document.getElementById('rpt-mov-f-brand')?.value || '';
-  // Movements don't directly have brand, so we might need to join or just filter by code initials if we had them.
-  // For now, let's just render all since joining is complex here.
-  renderMovementRows(reportMovementsCache);
+  const lot = (document.getElementById('rpt-mov-f-lot')?.value||'').trim();
+  const filtered = lot
+    ? reportMovementsCache.filter(r => String(r.LOT_NO||'').trim() === lot)
+    : reportMovementsCache;
+  renderMovementRows(filtered);
 }
 function clearMovementFilters(){
-  const el = document.getElementById('rpt-mov-f-brand');
-  if(el) el.value='';
+  ['rpt-mov-f-brand','rpt-mov-f-lot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderMovementRows(reportMovementsCache);
 }
 
@@ -1920,11 +1920,21 @@ function renderReportSummaryTable(rows){
 }
 
 function applyReportFilters(){
-  const brand=document.getElementById('rpt-f-brand').value;const size=document.getElementById('rpt-f-size').value;const thick=document.getElementById('rpt-f-thick').value;
-  renderReportSummaryTable(reportStockCache.filter(r=>(!brand||r.BRAND===brand)&&(!size||String(r.SIZE||'')===size)&&(!thick||String(r.THICKNESS||'')===thick)));
+  const brand = document.getElementById('rpt-f-brand').value;
+  const size  = document.getElementById('rpt-f-size').value;
+  const thick = document.getElementById('rpt-f-thick').value;
+  const lot   = (document.getElementById('rpt-f-lot')?.value||'').trim();
+  renderReportSummaryTable(reportStockCache.filter(r=>
+    (!brand || r.BRAND===brand) &&
+    (!size  || String(r.SIZE||'')===size) &&
+    (!thick || String(r.THICKNESS||'')===thick) &&
+    (!lot   || String(r.LOT_NO||'').trim() === lot)
+  ));
 }
-function clearReportFilters(){['rpt-f-brand','rpt-f-size','rpt-f-thick'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});renderReportSummaryTable(reportStockCache);}
-
+function clearReportFilters(){
+  ['rpt-f-brand','rpt-f-size','rpt-f-thick','rpt-f-lot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderReportSummaryTable(reportStockCache);
+}
 // ── REPORT INPUTS/OUTPUTS/HISTORY FILTER+SORT ─────────────────
 let reportInputsCache=[];let reportOutputsCache=[];let reportHistoryCache=[];
 
@@ -1978,36 +1988,73 @@ function renderHistoryRows(rows){
 }
 
 function applyInputFilters(){
-  const brand=document.getElementById('rpt-in-f-brand')?.value||'';
-  const size=document.getElementById('rpt-in-f-size')?.value||'';
-  const thick=document.getElementById('rpt-in-f-thick')?.value||'';
-  const sort=document.getElementById('rpt-in-sort')?.value||'ts-desc';
-  let rows=reportInputsCache.filter(r=>(!brand||r.BRAND===brand)&&(!size||String(r.SIZE||'')===size)&&(!thick||String(r.THICKNESS||'')===thick));
+  const brand = document.getElementById('rpt-in-f-brand')?.value||'';
+  const size  = document.getElementById('rpt-in-f-size')?.value||'';
+  const thick = document.getElementById('rpt-in-f-thick')?.value||'';
+  const lot   = (document.getElementById('rpt-in-f-lot')?.value||'').trim();
+  const sort  = document.getElementById('rpt-in-sort')?.value||'ts-desc';
+  let rows = reportInputsCache.filter(r=>
+    (!brand || r.BRAND===brand) &&
+    (!size  || String(r.SIZE||'')===size) &&
+    (!thick || String(r.THICKNESS||'')===thick) &&
+    (!lot   || String(r.LOT_NO||'').trim() === lot)
+  );
   renderInputRows(sortRows(rows,sort,'PIECES_IN'));
 }
-function clearInputFilters(){['rpt-in-f-brand','rpt-in-f-size','rpt-in-f-thick'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const s=document.getElementById('rpt-in-sort');if(s)s.value='ts-desc';applyInputFilters();}
+
+
+function clearInputFilters(){
+  ['rpt-in-f-brand','rpt-in-f-size','rpt-in-f-thick','rpt-in-f-lot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const s=document.getElementById('rpt-in-sort');if(s)s.value='ts-desc';
+  applyInputFilters();
+}
+
 
 function applyOutputFilters(){
-  const brand=document.getElementById('rpt-out-f-brand')?.value||'';
-  const size=document.getElementById('rpt-out-f-size')?.value||'';
-  const thick=document.getElementById('rpt-out-f-thick')?.value||'';
-  const sort=document.getElementById('rpt-out-sort')?.value||'ts-desc';
-  let rows=reportOutputsCache.filter(r=>(!brand||r.BRAND===brand)&&(!size||String(r.SIZE||'')===size)&&(!thick||String(r.THICKNESS||'')===thick));
+  const brand = document.getElementById('rpt-out-f-brand')?.value||'';
+  const size  = document.getElementById('rpt-out-f-size')?.value||'';
+  const thick = document.getElementById('rpt-out-f-thick')?.value||'';
+  const lot   = (document.getElementById('rpt-out-f-lot')?.value||'').trim();
+  const sort  = document.getElementById('rpt-out-sort')?.value||'ts-desc';
+  let rows = reportOutputsCache.filter(r=>
+    (!brand || r.BRAND===brand) &&
+    (!size  || String(r.SIZE||'')===size) &&
+    (!thick || String(r.THICKNESS||'')===thick) &&
+    (!lot   || String(r.LOT_NO||'').trim() === lot)
+  );
   renderOutputRows(sortRows(rows,sort,'PCS_OUT'));
 }
-function clearOutputFilters(){['rpt-out-f-brand','rpt-out-f-size','rpt-out-f-thick'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const s=document.getElementById('rpt-out-sort');if(s)s.value='ts-desc';applyOutputFilters();}
+function clearOutputFilters(){
+  ['rpt-out-f-brand','rpt-out-f-size','rpt-out-f-thick','rpt-out-f-lot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const s=document.getElementById('rpt-out-sort');if(s)s.value='ts-desc';
+  applyOutputFilters();
+}
+
 
 function applyHistoryFilters(){
-  const brand=document.getElementById('rpt-hist-f-brand')?.value||'';
-  const size=document.getElementById('rpt-hist-f-size')?.value||'';
-  const thick=document.getElementById('rpt-hist-f-thick')?.value||'';
-  const type=document.getElementById('rpt-hist-f-type')?.value||'';
-  const sort=document.getElementById('rpt-hist-sort')?.value||'ts-asc';
-  let rows=reportHistoryCache.filter(r=>{const rt=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');return(!brand||r.BRAND===brand)&&(!size||String(r.SIZE||'')===size)&&(!thick||String(r.THICKNESS||'')===thick)&&(!type||rt===type);});
+  const brand = document.getElementById('rpt-hist-f-brand')?.value||'';
+  const size  = document.getElementById('rpt-hist-f-size')?.value||'';
+  const thick = document.getElementById('rpt-hist-f-thick')?.value||'';
+  const type  = document.getElementById('rpt-hist-f-type')?.value||'';
+  const lot   = (document.getElementById('rpt-hist-f-lot')?.value||'').trim();
+  const sort  = document.getElementById('rpt-hist-sort')?.value||'ts-asc';
+  let rows = reportHistoryCache.filter(r=>{
+    const rt=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');
+    return (!brand || r.BRAND===brand) &&
+           (!size  || String(r.SIZE||'')===size) &&
+           (!thick || String(r.THICKNESS||'')===thick) &&
+           (!type  || rt===type) &&
+           (!lot   || String(r.LOT_NO||'').trim() === lot);
+  });
   const pField=rows.length>0?'PCS':'PIECES_IN';
   renderHistoryRows(sortRows(rows,sort,pField));
 }
-function clearHistoryFilters(){['rpt-hist-f-brand','rpt-hist-f-size','rpt-hist-f-thick','rpt-hist-f-type'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});const s=document.getElementById('rpt-hist-sort');if(s)s.value='ts-asc';applyHistoryFilters();}
+function clearHistoryFilters(){
+  ['rpt-hist-f-brand','rpt-hist-f-size','rpt-hist-f-thick','rpt-hist-f-type','rpt-hist-f-lot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const s=document.getElementById('rpt-hist-sort');if(s)s.value='ts-asc';
+  applyHistoryFilters();
+}
+
 
 // ── RECENT INPUTS ────────────────────────────────────────────
 function initRecentInputs(){
@@ -2911,6 +2958,61 @@ function expandEditLogs(prefix){
   collapsible.style.display='block';
   chevron.style.transform='rotate(90deg)';
   if(refreshBtn)refreshBtn.style.display='';
+}
+
+// ADD new reconcile function:
+let reconcileRunning=false;
+async function triggerReconcile(){
+  if(reconcileRunning){showToast('Reconcile already running…','info');return;}
+  reconcileRunning=true;
+  const btn=document.getElementById('reconcileBtn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Reconciling…';}
+  try{
+    const result=await api('reconcileCurrentStock');
+    if(result.corrections>0){
+      showToast('✅ Fixed '+result.corrections+' stock mismatches!','success');
+    }else{
+      showToast('✅ Stock accurate — no corrections needed','success');
+    }
+    await loadStockViewer();
+    if(document.getElementById('page-output').classList.contains('active'))loadInventory();
+    const panel=document.getElementById('reconcileResultPanel');
+    if(panel){
+      if(result.details&&result.details.length>0){
+        panel.style.display='block';
+        panel.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px">🔧 Reconcile fixed '+result.corrections+' rows at '+new Date().toLocaleTimeString()+'</div>'+
+          result.details.map(d=>'<div style="font-size:11px;color:var(--text2);padding:2px 0;border-bottom:1px solid var(--border2)">'+escapeHtml(d)+'</div>').join('');
+      }else{
+        panel.style.display='none';
+      }
+    }
+  }catch(e){showToast('Reconcile failed: '+e.message,'error');}
+  reconcileRunning=false;
+  if(btn){btn.disabled=false;btn.textContent='🔧 Reconcile';}
+}
+ 
+function escapeHtml(str){
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+ 
+// Also ADD a 1-minute auto-reconcile ping when tab is focused:
+let autoReconcileTimer=null;
+function startAutoReconcilePing(){
+  if(autoReconcileTimer)clearInterval(autoReconcileTimer);
+  autoReconcileTimer=setInterval(async()=>{
+    // Silent background reconcile — only refreshes stock viewer if changes found
+    try{
+      const result=await api('reconcileCurrentStock');
+      if(result.corrections>0){
+        showToast('⚙️ Auto-fixed '+result.corrections+' stock mismatches','info');
+        await loadStockViewer();
+        const activePage=document.querySelector('.page.active')?.id||'';
+        if(activePage==='page-output')filterOutput();
+      }
+    }catch(e){
+      // silent fail — don't spam errors
+    }
+  }, 60000); // every 60 seconds
 }
 
 // ── INIT ─────────────────────────────────────────────────────
