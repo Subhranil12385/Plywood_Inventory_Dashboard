@@ -834,13 +834,14 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 <div id="toastContainer"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdHzd6-ktztO5LAPhgV5ItHhu1zVV3VhU5QOrzoJ-0uApPcyf5EAbZI4eGCIO_zJfUUA/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZ_z6uZB15eWlzt5CxrBBAB1CZV5YxCU2cwVh5YDbyzSc3VgF3QQN7wrm1ydVi04BVZw/exec';
 
 let masterRows=[],stockRows=[],inventoryRows=[],filteredInv=[],selectedLot=null,pendingRows=[],summaryCache=null;
 let thresholdMap={},stockByCodeMap={},thresholdsReady=false;
 let currentReportView='summary';
 let currentUser='';
 let brandColorMap={};  // brand name → hex color from Google Sheet
+let editPermissions = { enableInputEdit:false, enableInputDelete:false, enableOutputEdit:false, enableOutputDelete:false };
 
 // ── BRAND COLOR HELPERS ──────────────────────────────────────
 function isLightColor(hex){
@@ -1208,6 +1209,7 @@ async function doLogin(){
     }).catch(()=>{});
     initRecentInputs();
     initRecentOutputs();
+    loadEditPermissions();
   }catch(e){
     errEl.style.display='block';
     if(e.message==='WRONG_PASSWORD'){
@@ -1267,8 +1269,8 @@ function switchTab(name){
   });
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
-  if(name==='output')  { loadInventory(); initRecentOutputs(); loadOutputEditLogs(); }
-  if(name==='input')   { loadInputEditLogs(); }
+  if(name==='output')  { loadInventory(); initRecentOutputs(); loadOutputEditLogs(); loadEditPermissions(); }
+  if(name==='input')   { loadInputEditLogs(); loadEditPermissions(); }
   if(name==='reports') setPreset('month');
   if(name==='master')  loadMasterData();
 }
@@ -2093,8 +2095,8 @@ async function loadRecentInputs(){
       <td class="mono" style="color:var(--amber)">${Number(r.NA||0).toFixed(4)}</td>
       <td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td>
       <td style="display:flex;gap:4px">
-        <button class="btn btn-outline btn-sm" onclick="openEditFromInput(${JSON.stringify(r).replace(/"/g,'&quot;')})" style="font-size:10px;padding:3px 8px;color:var(--blue);border-color:var(--blue)">✎ Edit</button>
-        <button class="btn btn-outline btn-sm" onclick="confirmDeleteInput(${JSON.stringify(r).replace(/"/g,'&quot;')})" style="font-size:10px;padding:3px 8px;color:var(--red);border-color:var(--red)">✕ Del</button>
+        <button class="btn btn-outline btn-sm" ${editPermissions.enableInputEdit?'':'disabled title="Edit disabled by admin"'} onclick="${editPermissions.enableInputEdit?'openEditFromInput('+JSON.stringify(r).replace(/"/g,'&quot;')+')'  :'void(0)'}" style="font-size:10px;padding:3px 8px;color:${editPermissions.enableInputEdit?'var(--blue)':'var(--muted)'};border-color:${editPermissions.enableInputEdit?'var(--blue)':'var(--border)'};${editPermissions.enableInputEdit?'':'cursor:not-allowed;opacity:0.45'}">✎ Edit</button>
+        <button class="btn btn-outline btn-sm" ${editPermissions.enableInputDelete?'':'disabled title="Delete disabled by admin"'} onclick="${editPermissions.enableInputDelete?'confirmDeleteInput('+JSON.stringify(r).replace(/"/g,'&quot;')+')':'void(0)'}" style="font-size:10px;padding:3px 8px;color:${editPermissions.enableInputDelete?'var(--red)':'var(--muted)'};border-color:${editPermissions.enableInputDelete?'var(--red)':'var(--border)'};${editPermissions.enableInputDelete?'':'cursor:not-allowed;opacity:0.45'}">✕ Del</button>
       </td>
     </tr>`).join('');}
   }catch(e){tbody.innerHTML='<tr class="empty-row"><td colspan="12">Load failed: '+e.message+'</td></tr>';showToast('Load failed: '+e.message,'error');}
@@ -2418,10 +2420,104 @@ async function loadMasterData(){
   if(btn){btn.disabled=true;document.getElementById('masterRefreshTxt').textContent='↻ Loading…';}
   try{
     const data=await api('getMasterColumnInfo');
-    masterColData=data;renderMasterKpis(data);renderMasterSections(data);
+    masterColData=data;renderMasterKpis(data);renderMasterSections(data);renderPermissionSwitches();
   }catch(e){showToast('Master data load failed: '+e.message,'error');}
   if(btn){btn.disabled=false;document.getElementById('masterRefreshTxt').textContent='⟳ Refresh';}
 }
+
+
+async function renderPermissionSwitches(){
+  // Only show if master password was used
+  if(!document.getElementById('tab-master')||document.getElementById('tab-master').style.display==='none') return;
+  
+  let perms;
+  try{ perms = await api('getEditPermissions'); editPermissions = perms; }
+  catch(e){ return; }
+  
+  const containerId = 'permSwitchesPanel';
+  let existing = document.getElementById(containerId);
+  if(!existing){
+    existing = document.createElement('div');
+    existing.id = containerId;
+    existing.className = 'card';
+    existing.style.marginBottom = '20px';
+    // Insert at top of master sections
+    const masterSections = document.getElementById('masterSections');
+    masterSections.insertBefore(existing, masterSections.firstChild);
+  }
+  
+  const switches = [
+    { key:'enableInputEdit',    label:'Enable input edit',    col:'R2' },
+    { key:'enableInputDelete',  label:'Enable input delete',  col:'S2' },
+    { key:'enableOutputEdit',   label:'Enable Output edit',   col:'T2' },
+    { key:'enableOutputDelete', label:'Enable Output delete', col:'U2' }
+  ];
+  
+  existing.innerHTML = `
+    <div class="card-header" style="border-left:4px solid #7c3aed">
+      <div class="card-title" style="color:#7c3aed;text-transform:none;font-size:14px;letter-spacing:0">
+        🔒 Edit &amp; Delete Permissions
+        <span class="badge" style="background:#7c3aed;color:#fff;margin-left:8px;font-size:10px">4 CONTROLS</span>
+      </div>
+      <span style="font-size:11px;color:var(--muted)">Controls R2–U2 in MasterData sheet · Master password required to change</span>
+    </div>
+    <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">
+      ${switches.map(s=>`
+        <div style="background:var(--bg);border:1.5px solid ${perms[s.key]?'var(--green)':'var(--border)'};border-radius:var(--r-md);padding:16px;display:flex;flex-direction:column;gap:10px;transition:border-color .2s">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em">${s.label}</div>
+          <div style="font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace">Sheet cell: ${s.col}</div>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+            <div style="position:relative;width:44px;height:24px;flex-shrink:0">
+              <input type="checkbox" id="perm-${s.key}" ${perms[s.key]?'checked':''} onchange="savePermSwitch()"
+                style="position:absolute;opacity:0;width:0;height:0">
+              <div id="perm-track-${s.key}" onclick="document.getElementById('perm-${s.key}').click()"
+                style="position:absolute;inset:0;border-radius:99px;background:${perms[s.key]?'var(--green)':'#d1d5db'};cursor:pointer;transition:background .2s">
+                <div style="position:absolute;top:3px;left:${perms[s.key]?'23px':'3px'};width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .2s" id="perm-knob-${s.key}"></div>
+              </div>
+            </div>
+            <span id="perm-label-${s.key}" style="font-size:13px;font-weight:600;color:${perms[s.key]?'var(--green)':'var(--muted)'}">${perms[s.key]?'Yes — Enabled':'No — Disabled'}</span>
+          </label>
+        </div>`).join('')}
+    </div>
+    <div id="permSaveStatus" style="padding:0 20px 12px;font-size:12px;color:var(--muted)"></div>`;
+  
+  // Wire up live visual update for each toggle
+  switches.forEach(s=>{
+    const cb = document.getElementById('perm-'+s.key);
+    if(!cb) return;
+    cb.addEventListener('change', function(){
+      const on = cb.checked;
+      document.getElementById('perm-track-'+s.key).style.background = on?'var(--green)':'#d1d5db';
+      document.getElementById('perm-knob-'+s.key).style.left = on?'23px':'3px';
+      const lbl = document.getElementById('perm-label-'+s.key);
+      if(lbl){ lbl.textContent = on?'Yes — Enabled':'No — Disabled'; lbl.style.color = on?'var(--green)':'var(--muted)'; }
+      const card = cb.closest('div[style*="border:1.5px"]');
+      if(card) card.style.borderColor = on?'var(--green)':'var(--border)';
+    });
+  });
+}
+
+async function savePermSwitch(){
+  const payload = {
+    enableInputEdit:    document.getElementById('perm-enableInputEdit')?.checked    || false,
+    enableInputDelete:  document.getElementById('perm-enableInputDelete')?.checked  || false,
+    enableOutputEdit:   document.getElementById('perm-enableOutputEdit')?.checked   || false,
+    enableOutputDelete: document.getElementById('perm-enableOutputDelete')?.checked || false,
+    user: currentUser
+  };
+  const statusEl = document.getElementById('permSaveStatus');
+  if(statusEl) statusEl.textContent = 'Saving…';
+  try{
+    await api('saveEditPermissions', payload);
+    editPermissions = payload;
+    showToast('✓ Permissions updated in MasterData sheet','success');
+    if(statusEl) statusEl.textContent = '✓ Saved at '+new Date().toLocaleTimeString();
+  }catch(e){
+    showToast('Failed to save permissions: '+e.message,'error');
+    if(statusEl) statusEl.textContent = '✕ Save failed: '+e.message;
+  }
+}
+
 
 function renderMasterKpis(data){
   const kpiColors=['amber','amber','green','green','red','blue','blue'];
@@ -2835,8 +2931,8 @@ async function loadRecentOutputs(){
       <td class="mono" style="color:var(--red)">${Number(r.NA||0).toFixed(4)}</td>
       <td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td>
       <td style="display:flex;gap:4px">
-        <button class="btn btn-outline btn-sm" onclick="openOutputEditModal(${JSON.stringify(r).replace(/"/g,'&quot;')})" style="font-size:10px;padding:3px 8px;color:var(--red);border-color:var(--red)">✎ Edit</button>
-        <button class="btn btn-outline btn-sm" onclick="confirmDeleteOutput(${JSON.stringify(r).replace(/"/g,'&quot;')})" style="font-size:10px;padding:3px 8px;color:var(--red);border-color:var(--red)">✕ Del</button>
+        <button class="btn btn-outline btn-sm" ${editPermissions.enableOutputEdit?'':'disabled title="Edit disabled by admin"'} onclick="${editPermissions.enableOutputEdit?'openOutputEditModal('+JSON.stringify(r).replace(/"/g,'&quot;')+')':'void(0)'}" style="font-size:10px;padding:3px 8px;color:${editPermissions.enableOutputEdit?'var(--red)':'var(--muted)'};border-color:${editPermissions.enableOutputEdit?'var(--red)':'var(--border)'};${editPermissions.enableOutputEdit?'':'cursor:not-allowed;opacity:0.45'}">✎ Edit</button>
+        <button class="btn btn-outline btn-sm" ${editPermissions.enableOutputDelete?'':'disabled title="Delete disabled by admin"'} onclick="${editPermissions.enableOutputDelete?'confirmDeleteOutput('+JSON.stringify(r).replace(/"/g,'&quot;')+')':'void(0)'}" style="font-size:10px;padding:3px 8px;color:${editPermissions.enableOutputDelete?'var(--red)':'var(--muted)'};border-color:${editPermissions.enableOutputDelete?'var(--red)':'var(--border)'};${editPermissions.enableOutputDelete?'':'cursor:not-allowed;opacity:0.45'}">✕ Del</button>
       </td>
     </tr>`).join('');}
   }catch(e){tbody.innerHTML='<tr class="empty-row"><td colspan="12">Load failed: '+e.message+'</td></tr>';showToast('Load failed: '+e.message,'error');}
@@ -2995,24 +3091,14 @@ function escapeHtml(str){
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
  
-// Also ADD a 1-minute auto-reconcile ping when tab is focused:
-let autoReconcileTimer=null;
-function startAutoReconcilePing(){
-  if(autoReconcileTimer)clearInterval(autoReconcileTimer);
-  autoReconcileTimer=setInterval(async()=>{
-    // Silent background reconcile — only refreshes stock viewer if changes found
-    try{
-      const result=await api('reconcileCurrentStock');
-      if(result.corrections>0){
-        showToast('⚙️ Auto-fixed '+result.corrections+' stock mismatches','info');
-        await loadStockViewer();
-        const activePage=document.querySelector('.page.active')?.id||'';
-        if(activePage==='page-output')filterOutput();
-      }
-    }catch(e){
-      // silent fail — don't spam errors
-    }
-  }, 60000); // every 60 seconds
+
+
+
+async function loadEditPermissions(){
+  try{
+    const d = await api('getEditPermissions');
+    editPermissions = d;
+  }catch(e){ console.warn('Could not load edit permissions:', e.message); }
 }
 
 // ── INIT ─────────────────────────────────────────────────────
