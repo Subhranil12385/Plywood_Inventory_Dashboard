@@ -378,12 +378,13 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
     </div>
 
     <div class="card gap-section" id="recentInputsCard">
-      <div class="card-header">
+      <div class="card-header" onclick="toggleSection('riCollapsible','riChevron')" style="cursor:pointer;user-select:none;">
         <div class="card-title">
+          <span id="riChevron" style="font-size:12px;transition:transform .2s;display:inline-block;margin-right:4px;transform:rotate(90deg)">▶</span>
           <span class="step-chip"><span class="step-num">3</span> Recent Inputs</span>
           <span id="riSpinnerWrap" style="display:none"><span class="spinner"></span></span>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()">
           <input type="date" class="form-control" id="ri-from" style="width:auto;font-size:12px">
           <span style="color:var(--muted);font-size:12px">→</span>
           <input type="date" class="form-control" id="ri-to" style="width:auto;font-size:12px">
@@ -393,40 +394,54 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <button class="btn btn-amber btn-sm" onclick="loadRecentInputs()">⟳ Load</button>
         </div>
       </div>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS In</th><th>SQM</th><th>NA</th><th>User</th><th>Action</th></tr></thead>
-          <tbody id="riTbody"><tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)">Select a time range and click Load</td></tr></tbody>
-        </table>
+      <div id="riCollapsible">
+        <div style="padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border2);display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Filter:</span>
+          <select class="form-control" id="ri-f-brand" style="width:auto;font-size:12px" onchange="applyRiFilters()"><option value="">All Brands</option></select>
+          <select class="form-control" id="ri-f-size" style="width:auto;font-size:12px" onchange="applyRiFilters()"><option value="">All Sizes</option></select>
+          <select class="form-control" id="ri-f-thick" style="width:auto;font-size:12px" onchange="applyRiFilters()"><option value="">All Thickness</option></select>
+          <input type="number" class="form-control" id="ri-f-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="applyRiFilters()">
+          <button class="btn btn-outline btn-sm" onclick="clearRiFilters()">✕ Clear</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS In</th><th>SQM</th><th>NA</th><th>User</th><th>Action</th></tr></thead>
+            <tbody id="riTbody"><tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)">Select a time range and click Load</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
     
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header" onclick="toggleSection('svCollapsible','svChevron')" style="cursor:pointer;user-select:none;">
         <div class="card-title">
+          <span id="svChevron" style="font-size:12px;transition:transform .2s;display:inline-block;margin-right:4px;transform:rotate(90deg)">▶</span>
           <span class="step-chip"><span class="step-num">4</span> Current Stock</span>
           <span id="svSpinnerWrap" style="display:none"><span class="spinner"></span></span>
           <span id="thresholdBadges"></span>
         </div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()">
           <select class="form-control" id="sv-brand" style="width:auto;font-size:12px" onchange="renderStockViewer()"><option value="">All Brands</option></select>
           <select class="form-control" id="sv-size" style="width:auto;font-size:12px" onchange="renderStockViewer()"><option value="">All Sizes</option></select>
           <select class="form-control" id="sv-thick" style="width:auto;font-size:12px" onchange="renderStockViewer()"><option value="">All Thickness</option></select>
+          <input type="number" class="form-control" id="sv-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="renderStockViewer()">
           <button class="btn btn-outline btn-sm" id="svRefreshBtn" onclick="loadStockViewer()">
             <span id="svRefreshTxt">⟳ Refresh</span>
             <span id="svRefreshSpinner" style="display:none;width:14px;height:14px;border:2px solid rgba(0,0,0,0.15);border-top-color:var(--amber);border-radius:50%;animation:spin 0.6s linear infinite"></span>
           </button>
         </div>
       </div>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS Remaining</th><th>SQM Remaining</th><th>NA Remaining</th><th>Updated</th><th>User</th></tr></thead>
-          <tbody id="svTbody"><tr><td colspan="11" style="text-align:center;padding:32px;color:var(--muted)">Loading stock…</td></tr></tbody>
-        </table>
+      <div id="svCollapsible">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS Remaining</th><th>SQM Remaining</th><th>NA Remaining</th><th>Updated</th><th>User</th></tr></thead>
+            <tbody id="svTbody"><tr><td colspan="11" style="text-align:center;padding:32px;color:var(--muted)">Loading stock…</td></tr></tbody>
+          </table>
+        </div>
       </div>
-    </div>
+</div>
   
 
 
@@ -479,6 +494,10 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <div class="form-group"><label class="form-label">Brand</label><select class="form-control" id="out-brand" onchange="filterOutput()"><option value="">All Brands</option></select></div>
           <div class="form-group"><label class="form-label">Thickness (mm)</label><select class="form-control" id="out-thick" onchange="filterOutput()"><option value="">All Thickness</option></select></div>
           <div class="form-group"><label class="form-label">Size</label><select class="form-control" id="out-size" onchange="filterOutput()"><option value="">All Sizes</option></select></div>
+
+
+
+          <div class="form-group"><label class="form-label">Lot / Stack No.</label><input type="number" class="form-control" id="out-lot" placeholder="Lot #" oninput="filterOutput()"></div>
           <div class="form-group"><label class="form-label">Sort Order</label>
             <select class="form-control" id="out-sort" onchange="filterOutput()">
               <option value="fifo" selected>FIFO (Oldest first)</option>
@@ -486,7 +505,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
               <option value="entry">Same order as entered</option>
             </select>
           </div>
-          <div class="form-group"><label class="form-label">Time window (taken out)</label><select class="form-control" id="out-window" onchange="rePaintLots()"><option value="24h" selected>Last 24 hours</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="all">All time</option></select></div>
+         <div class="form-group"><label class="form-label">Time window (taken out)</label><select class="form-control" id="out-window" onchange="rePaintLots()"><option value="24h" selected>Last 24 hours</option><option value="7d">Last 7 days</option><option value="30d">Last 30 days</option><option value="all">All time</option></select></div>
         </div>
       </div>
     </div>
@@ -521,14 +540,15 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       </div>
     </div>
 
-    <!-- RECENT MOVE OUTS -->
+   <!-- RECENT MOVE OUTS -->
     <div class="card gap-section" id="recentOutputsCard" style="margin-top:20px">
-      <div class="card-header">
+      <div class="card-header" onclick="toggleSection('roCollapsible','roChevron')" style="cursor:pointer;user-select:none;">
         <div class="card-title">
+          <span id="roChevron" style="font-size:12px;transition:transform .2s;display:inline-block;margin-right:4px;transform:rotate(90deg)">▶</span>
           <span class="step-chip"><span class="step-num">4</span> Recent Move Outs</span>
           <span id="roSpinnerWrap" style="display:none"><span class="spinner"></span></span>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap" onclick="event.stopPropagation()">
           <input type="date" class="form-control" id="ro-from" style="width:auto;font-size:12px">
           <span style="color:var(--muted);font-size:12px">→</span>
           <input type="date" class="form-control" id="ro-to" style="width:auto;font-size:12px">
@@ -538,11 +558,21 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <button class="btn btn-amber btn-sm" onclick="loadRecentOutputs()">⟳ Load</button>
         </div>
       </div>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS Out</th><th>SQM</th><th>NA</th><th>User</th><th>Action</th></tr></thead>
-          <tbody id="roTbody"><tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)">Select a time range and click Load</td></tr></tbody>
-        </table>
+      <div id="roCollapsible">
+        <div style="padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border2);display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">Filter:</span>
+          <select class="form-control" id="ro-f-brand" style="width:auto;font-size:12px" onchange="applyRoFilters()"><option value="">All Brands</option></select>
+          <select class="form-control" id="ro-f-size" style="width:auto;font-size:12px" onchange="applyRoFilters()"><option value="">All Sizes</option></select>
+          <select class="form-control" id="ro-f-thick" style="width:auto;font-size:12px" onchange="applyRoFilters()"><option value="">All Thickness</option></select>
+          <input type="number" class="form-control" id="ro-f-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="applyRoFilters()">
+          <button class="btn btn-outline btn-sm" onclick="clearRoFilters()">✕ Clear</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS Out</th><th>SQM</th><th>NA</th><th>User</th><th>Action</th></tr></thead>
+            <tbody id="roTbody"><tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)">Select a time range and click Load</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -1546,7 +1576,8 @@ async function loadStockViewer(){
     const sizes=[...new Set(stockRows.map(r=>String(r.SIZE||'')).filter(Boolean))].sort();
     const thicks=[...new Set(stockRows.map(r=>String(r.THICKNESS||'')).filter(Boolean))].sort((a,b)=>+a-+b);
     fillSelect('sv-brand',brands,'All Brands');fillSelect('sv-size',sizes,'All Sizes');fillSelect('sv-thick',thicks,'All Thickness');
-    renderStockViewer();showToast('Stock refreshed — '+stockRows.length+' lots','info');
+    const svLot = document.getElementById('sv-lot'); if(svLot) svLot.value = '';
+    renderStockViewer(); showToast('Stock refreshed — '+stockRows.length+' lots','info');
   }catch(e){showToast('Refresh failed: '+e.message,'error');}
   document.getElementById('svSpinnerWrap').style.display='none';
   if(hTxt)hTxt.style.display='inline';if(hSpin)hSpin.style.display='none';
@@ -1566,19 +1597,25 @@ function checkNonMoving(materialCode, duration) {
 }
 
 function renderStockViewer(){
-  const brand=document.getElementById('sv-brand').value;
-  const size=document.getElementById('sv-size').value;
-  const thick=document.getElementById('sv-thick').value;
-  const rows=stockRows.filter(r=>(!brand||r.BRAND===brand)&&(!size||String(r.SIZE||'')===size)&&(!thick||String(r.THICKNESS||'')===thick)&&Number(r.PIECES_REMAINING)>0);
-  const tbody=document.getElementById('svTbody');
-  if(rows.length===0){tbody.innerHTML='<tr class="empty-row"><td colspan="11">No stock matches filters</td></tr>';return;}
-  tbody.innerHTML=rows.map(r=>{
-    const pcs=Number(r.PIECES_REMAINING);const sqm=Number(r.SQM_REMAINING||0);const na=Number(r.NA_REMAINING||0);
-    const lvl=alertLevel(r.MATERIAL_CODE);
-    const pcsCol=pcs>20?'num-green':pcs>5?'num-amber':'num-red';
-    const alertPill=lvl==='red'?'<span class="alert-pill alert-pill-red" style="margin-left:6px">▼ Below min</span>':lvl==='yellow'?'<span class="alert-pill alert-pill-yellow" style="margin-left:6px">≈ Near min</span>':'';
-    const isNonMoving = checkNonMoving(r.MATERIAL_CODE, r.DURATION_FROM_LAST_MOVED);
-    return`<tr class="${lvl==='red'?'row-red':lvl==='yellow'?'row-yellow':''}">
+  const brand = document.getElementById('sv-brand').value;
+  const size  = document.getElementById('sv-size').value;
+  const thick = document.getElementById('sv-thick').value;
+  const lot   = (document.getElementById('sv-lot')?.value || '').trim();
+  const rows  = stockRows.filter(r =>
+    (!brand || r.BRAND === brand) &&
+    (!size  || String(r.SIZE||'') === size) &&
+    (!thick || String(r.THICKNESS||'') === thick) &&
+    (!lot   || String(r.LOT_NO||'').trim() === lot) &&
+    Number(r.PIECES_REMAINING) > 0
+  );
+  const tbody = document.getElementById('svTbody');
+  if(rows.length === 0){ tbody.innerHTML = '<tr class="empty-row"><td colspan="11">No stock matches filters</td></tr>'; return; }
+  tbody.innerHTML = rows.map(r => {
+    const pcs = Number(r.PIECES_REMAINING); const sqm = Number(r.SQM_REMAINING||0); const na = Number(r.NA_REMAINING||0);
+    const lvl = alertLevel(r.MATERIAL_CODE);
+    const pcsCol = pcs > 20 ? 'num-green' : pcs > 5 ? 'num-amber' : 'num-red';
+    const alertPill = lvl === 'red' ? '<span class="alert-pill alert-pill-red" style="margin-left:6px">▼ Below min</span>' : lvl === 'yellow' ? '<span class="alert-pill alert-pill-yellow" style="margin-left:6px">≈ Near min</span>' : '';
+    return `<tr class="${lvl==='red'?'row-red':lvl==='yellow'?'row-yellow':''}">
       <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td>
       <td>${brandCell(r.BRAND)}</td>
       <td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span>${alertPill}</td>
@@ -1621,9 +1658,10 @@ function filterOutput(){
   const brand=document.getElementById('out-brand').value;
   const thick=document.getElementById('out-thick').value;
   const size=document.getElementById('out-size').value;
+  const lot=(document.getElementById('out-lot')?.value||'').trim();
   const sort=document.getElementById('out-sort')?.value || 'fifo';
 
-  filteredInv=inventoryRows.filter(r=>(!brand||r.BRAND===brand)&&(!thick||String(r.THICKNESS||'')===thick)&&(!size||String(r.SIZE||'')===size));
+  filteredInv=inventoryRows.filter(r=>(!brand||r.BRAND===brand)&&(!thick||String(r.THICKNESS||'')===thick)&&(!size||String(r.SIZE||'')===size)&&(!lot||String(r.LOT_NO||'').trim()===lot));
   
   // Apply sorting
   if (sort === 'fifo') {
@@ -1643,7 +1681,7 @@ function filterOutput(){
 }
 
 function clearOutputSearch(){
-  ['out-brand','out-thick','out-size'].forEach(id=>document.getElementById(id).value='');
+  ['out-brand','out-thick','out-size','out-lot'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   const sortEl = document.getElementById('out-sort');
   if(sortEl) sortEl.value='fifo';
   filteredInv=[];selectedLot=null;
@@ -2076,31 +2114,20 @@ function setRiPreset(preset){
 }
 
 async function loadRecentInputs(){
-  const from=document.getElementById('ri-from').value;const to=document.getElementById('ri-to').value;
-  if(!from||!to){showToast('Select a date range','error');return;}
-  const spinner=document.getElementById('riSpinnerWrap');const tbody=document.getElementById('riTbody');
-  spinner.style.display='inline-block';tbody.innerHTML='<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>';
+  const from = document.getElementById('ri-from').value; const to = document.getElementById('ri-to').value;
+  if(!from||!to){ showToast('Select a date range','error'); return; }
+  const spinner = document.getElementById('riSpinnerWrap'); const tbody = document.getElementById('riTbody');
+  spinner.style.display = 'inline-block';
+  tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>';
+  // Reset filters on each load
+  clearRiFilters();
   try{
-    const data=await api('getSummary',{from,to});
-    const rows=(data.inputs||[]).slice().reverse();
-    if(rows.length===0){tbody.innerHTML='<tr class="empty-row"><td colspan="12">No inputs in this range</td></tr>';}
-    else{tbody.innerHTML=rows.map((r,i)=>`<tr>
-      <td class="mono" style="font-size:11px;color:var(--muted)">${r.Timestamp||'—'}</td>
-      <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td>
-      <td>${brandCell(r.BRAND)}</td>
-      <td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td>
-      <td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
-      <td class="num num-green">${Number(r.PIECES_IN||0)}</td>
-      <td class="mono" style="color:var(--green)">${Number(r.SQM||0).toFixed(4)}</td>
-      <td class="mono" style="color:var(--amber)">${Number(r.NA||0).toFixed(4)}</td>
-      <td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td>
-      <td style="display:flex;gap:4px">
-        <button class="btn btn-outline btn-sm" ${editPermissions.enableInputEdit?'':'disabled title="Edit disabled by admin"'} onclick="${editPermissions.enableInputEdit?'openEditFromInput('+JSON.stringify(r).replace(/"/g,'&quot;')+')'  :'void(0)'}" style="font-size:10px;padding:3px 8px;color:${editPermissions.enableInputEdit?'var(--blue)':'var(--muted)'};border-color:${editPermissions.enableInputEdit?'var(--blue)':'var(--border)'};${editPermissions.enableInputEdit?'':'cursor:not-allowed;opacity:0.45'}">✎ Edit</button>
-        <button class="btn btn-outline btn-sm" ${editPermissions.enableInputDelete?'':'disabled title="Delete disabled by admin"'} onclick="${editPermissions.enableInputDelete?'confirmDeleteInput('+JSON.stringify(r).replace(/"/g,'&quot;')+')':'void(0)'}" style="font-size:10px;padding:3px 8px;color:${editPermissions.enableInputDelete?'var(--red)':'var(--muted)'};border-color:${editPermissions.enableInputDelete?'var(--red)':'var(--border)'};${editPermissions.enableInputDelete?'':'cursor:not-allowed;opacity:0.45'}">✕ Del</button>
-      </td>
-    </tr>`).join('');}
-  }catch(e){tbody.innerHTML='<tr class="empty-row"><td colspan="12">Load failed: '+e.message+'</td></tr>';showToast('Load failed: '+e.message,'error');}
-  spinner.style.display='none';
+    const data = await api('getSummary',{from,to});
+    riRowsCache = (data.inputs||[]).slice().reverse();
+    fillRiFilterDropdowns(riRowsCache);
+    renderRiRows(riRowsCache);
+  }catch(e){ tbody.innerHTML = '<tr class="empty-row"><td colspan="12">Load failed: '+e.message+'</td></tr>'; showToast('Load failed: '+e.message,'error'); }
+  spinner.style.display = 'none';
 }
 
 function openEditFromInput(r){
@@ -2911,32 +2938,20 @@ function setRoPreset(preset){
 }
 
 async function loadRecentOutputs(){
-  const from=document.getElementById('ro-from')?.value;const to=document.getElementById('ro-to')?.value;
-  if(!from||!to){showToast('Select a date range','error');return;}
-  const spinner=document.getElementById('roSpinnerWrap');const tbody=document.getElementById('roTbody');
-  if(spinner)spinner.style.display='inline-block';
-  tbody.innerHTML='<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>';
+  const from = document.getElementById('ro-from')?.value; const to = document.getElementById('ro-to')?.value;
+  if(!from||!to){ showToast('Select a date range','error'); return; }
+  const spinner = document.getElementById('roSpinnerWrap'); const tbody = document.getElementById('roTbody');
+  if(spinner) spinner.style.display = 'inline-block';
+  tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>';
+  // Reset filters on each load
+  clearRoFilters();
   try{
-    const data=await api('getSummary',{from,to});
-    const rows=(data.outputs||[]).slice().reverse();
-    if(rows.length===0){tbody.innerHTML='<tr class="empty-row"><td colspan="12">No move outs in this range</td></tr>';}
-    else{tbody.innerHTML=rows.map(r=>`<tr>
-      <td class="mono" style="font-size:11px;color:var(--muted)">${r.Timestamp||'—'}</td>
-      <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td>
-      <td>${brandCell(r.BRAND)}</td>
-      <td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td>
-      <td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
-      <td class="num num-red">${Number(r.PCS_OUT||0)}</td>
-      <td class="mono" style="color:var(--red)">${Number(r.SQM||0).toFixed(4)}</td>
-      <td class="mono" style="color:var(--red)">${Number(r.NA||0).toFixed(4)}</td>
-      <td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td>
-      <td style="display:flex;gap:4px">
-        <button class="btn btn-outline btn-sm" ${editPermissions.enableOutputEdit?'':'disabled title="Edit disabled by admin"'} onclick="${editPermissions.enableOutputEdit?'openOutputEditModal('+JSON.stringify(r).replace(/"/g,'&quot;')+')':'void(0)'}" style="font-size:10px;padding:3px 8px;color:${editPermissions.enableOutputEdit?'var(--red)':'var(--muted)'};border-color:${editPermissions.enableOutputEdit?'var(--red)':'var(--border)'};${editPermissions.enableOutputEdit?'':'cursor:not-allowed;opacity:0.45'}">✎ Edit</button>
-        <button class="btn btn-outline btn-sm" ${editPermissions.enableOutputDelete?'':'disabled title="Delete disabled by admin"'} onclick="${editPermissions.enableOutputDelete?'confirmDeleteOutput('+JSON.stringify(r).replace(/"/g,'&quot;')+')':'void(0)'}" style="font-size:10px;padding:3px 8px;color:${editPermissions.enableOutputDelete?'var(--red)':'var(--muted)'};border-color:${editPermissions.enableOutputDelete?'var(--red)':'var(--border)'};${editPermissions.enableOutputDelete?'':'cursor:not-allowed;opacity:0.45'}">✕ Del</button>
-      </td>
-    </tr>`).join('');}
-  }catch(e){tbody.innerHTML='<tr class="empty-row"><td colspan="12">Load failed: '+e.message+'</td></tr>';showToast('Load failed: '+e.message,'error');}
-  if(spinner)spinner.style.display='none';
+    const data = await api('getSummary',{from,to});
+    roRowsCache = (data.outputs||[]).slice().reverse();
+    fillRoFilterDropdowns(roRowsCache);
+    renderRoRows(roRowsCache);
+  }catch(e){ tbody.innerHTML = '<tr class="empty-row"><td colspan="12">Load failed: '+e.message+'</td></tr>'; showToast('Load failed: '+e.message,'error'); }
+  if(spinner) spinner.style.display = 'none';
 }
 
 // ── EDIT OUTPUT PCS MODAL ─────────────────────────────────────
@@ -3091,6 +3106,150 @@ function escapeHtml(str){
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ── GENERIC COLLAPSIBLE TOGGLE ────────────────────────────────
+function toggleSection(contentId, chevronId){
+  const el = document.getElementById(contentId);
+  const ch = document.getElementById(chevronId);
+  if(!el) return;
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : '';
+  if(ch) ch.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(90deg)';
+}
+
+// ── STOCK VIEWER: updated renderStockViewer with lot filter ───
+// (replaces the existing renderStockViewer function)
+
+// ── RECENT INPUTS FILTER CACHE & HELPERS ─────────────────────
+let riRowsCache = [];
+
+function fillRiFilterDropdowns(rows){
+  const brands = [...new Set(rows.map(r=>r.BRAND).filter(Boolean))].sort();
+  const sizes  = [...new Set(rows.map(r=>String(r.SIZE||'')).filter(Boolean))].sort();
+  const thicks = [...new Set(rows.map(r=>String(r.THICKNESS||'')).filter(Boolean))].sort((a,b)=>+a-+b);
+  fillSelect('ri-f-brand', brands, 'All Brands');
+  fillSelect('ri-f-size',  sizes,  'All Sizes');
+  fillSelect('ri-f-thick', thicks, 'All Thickness');
+}
+
+function applyRiFilters(){
+  const brand = document.getElementById('ri-f-brand')?.value || '';
+  const size  = document.getElementById('ri-f-size')?.value  || '';
+  const thick = document.getElementById('ri-f-thick')?.value || '';
+  const lot   = (document.getElementById('ri-f-lot')?.value  || '').trim();
+  const filtered = riRowsCache.filter(r =>
+    (!brand || r.BRAND === brand) &&
+    (!size  || String(r.SIZE||'') === size) &&
+    (!thick || String(r.THICKNESS||'') === thick) &&
+    (!lot   || String(r.LOT_NO||'').trim() === lot)
+  );
+  renderRiRows(filtered);
+}
+
+function clearRiFilters(){
+  ['ri-f-brand','ri-f-size','ri-f-thick','ri-f-lot'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  renderRiRows(riRowsCache);
+}
+
+function renderRiRows(rows){
+  const tbody = document.getElementById('riTbody');
+  if(!tbody) return;
+  if(rows.length === 0){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="12">No inputs match filters</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td class="mono" style="font-size:11px;color:var(--muted)">${r.Timestamp||'—'}</td>
+    <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td>
+    <td>${brandCell(r.BRAND)}</td>
+    <td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td>
+    <td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
+    <td class="num num-green">${Number(r.PIECES_IN||0)}</td>
+    <td class="mono" style="color:var(--green)">${Number(r.SQM||0).toFixed(4)}</td>
+    <td class="mono" style="color:var(--amber)">${Number(r.NA||0).toFixed(4)}</td>
+    <td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td>
+    <td style="display:flex;gap:4px">
+      <button class="btn btn-outline btn-sm" ${editPermissions.enableInputEdit?'':'disabled title="Edit disabled by admin"'} onclick="${editPermissions.enableInputEdit?'openEditFromInput('+JSON.stringify(r).replace(/"/g,'&quot;')+')':'void(0)'}" style="font-size:10px;padding:3px 8px;color:${editPermissions.enableInputEdit?'var(--blue)':'var(--muted)'};border-color:${editPermissions.enableInputEdit?'var(--blue)':'var(--border)'};${editPermissions.enableInputEdit?'':'cursor:not-allowed;opacity:0.45'}">✎ Edit</button>
+      <button class="btn btn-outline btn-sm" ${editPermissions.enableInputDelete?'':'disabled title="Delete disabled by admin"'} onclick="${editPermissions.enableInputDelete?'confirmDeleteInput('+JSON.stringify(r).replace(/"/g,'&quot;')+')':'void(0)'}" style="font-size:10px;padding:3px 8px;color:${editPermissions.enableInputDelete?'var(--red)':'var(--muted)'};border-color:${editPermissions.enableInputDelete?'var(--red)':'var(--border)'};${editPermissions.enableInputDelete?'':'cursor:not-allowed;opacity:0.45'}">✕ Del</button>
+    </td>
+  </tr>`).join('');
+}
+
+// ── RECENT OUTPUTS FILTER CACHE & HELPERS ────────────────────
+let roRowsCache = [];
+
+function fillRoFilterDropdowns(rows){
+  const brands = [...new Set(rows.map(r=>r.BRAND).filter(Boolean))].sort();
+  const sizes  = [...new Set(rows.map(r=>String(r.SIZE||'')).filter(Boolean))].sort();
+  const thicks = [...new Set(rows.map(r=>String(r.THICKNESS||'')).filter(Boolean))].sort((a,b)=>+a-+b);
+  fillSelect('ro-f-brand', brands, 'All Brands');
+  fillSelect('ro-f-size',  sizes,  'All Sizes');
+  fillSelect('ro-f-thick', thicks, 'All Thickness');
+}
+
+function applyRoFilters(){
+  const brand = document.getElementById('ro-f-brand')?.value || '';
+  const size  = document.getElementById('ro-f-size')?.value  || '';
+  const thick = document.getElementById('ro-f-thick')?.value || '';
+  const lot   = (document.getElementById('ro-f-lot')?.value  || '').trim();
+  const filtered = roRowsCache.filter(r =>
+    (!brand || r.BRAND === brand) &&
+    (!size  || String(r.SIZE||'') === size) &&
+    (!thick || String(r.THICKNESS||'') === thick) &&
+    (!lot   || String(r.LOT_NO||'').trim() === lot)
+  );
+  renderRoRows(filtered);
+}
+
+function clearRoFilters(){
+  ['ro-f-brand','ro-f-size','ro-f-thick','ro-f-lot'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  renderRoRows(roRowsCache);
+}
+
+function renderRoRows(rows){
+  const tbody = document.getElementById('roTbody');
+  if(!tbody) return;
+  if(rows.length === 0){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="12">No move outs match filters</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td class="mono" style="font-size:11px;color:var(--muted)">${r.Timestamp||'—'}</td>
+    <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td>
+    <td>${brandCell(r.BRAND)}</td>
+    <td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td>
+    <td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
+    <td class="num num-red">${Number(r.PCS_OUT||0)}</td>
+    <td class="mono" style="color:var(--red)">${Number(r.SQM||0).toFixed(4)}</td>
+    <td class="mono" style="color:var(--red)">${Number(r.NA||0).toFixed(4)}</td>
+    <td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td>
+    <td style="display:flex;gap:4px">
+      <button class="btn btn-outline btn-sm" ${editPermissions.enableOutputEdit?'':'disabled title="Edit disabled by admin"'} onclick="${editPermissions.enableOutputEdit?'openOutputEditModal('+JSON.stringify(r).replace(/"/g,'&quot;')+')':'void(0)'}" style="font-size:10px;padding:3px 8px;color:${editPermissions.enableOutputEdit?'var(--red)':'var(--muted)'};border-color:${editPermissions.enableOutputEdit?'var(--red)':'var(--border)'};${editPermissions.enableOutputEdit?'':'cursor:not-allowed;opacity:0.45'}">✎ Edit</button>
+      <button class="btn btn-outline btn-sm" ${editPermissions.enableOutputDelete?'':'disabled title="Delete disabled by admin"'} onclick="${editPermissions.enableOutputDelete?'confirmDeleteOutput('+JSON.stringify(r).replace(/"/g,'&quot;')+')':'void(0)'}" style="font-size:10px;padding:3px 8px;color:${editPermissions.enableOutputDelete?'var(--red)':'var(--muted)'};border-color:${editPermissions.enableOutputDelete?'var(--red)':'var(--border)'};${editPermissions.enableOutputDelete?'':'cursor:not-allowed;opacity:0.45'}">✕ Del</button>
+    </td>
+  </tr>`).join('');
+}
+
+
+
+
 
 
 
