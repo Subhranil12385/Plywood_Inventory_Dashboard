@@ -172,6 +172,11 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 @keyframes cardPulse{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,0);}50%{box-shadow:0 0 10px 3px rgba(217,119,6,.2);}}
 @keyframes rowBlink{0%,100%{background:rgba(220,38,38,.04);}50%{background:rgba(220,38,38,.14);}}
 @keyframes rowPulse{0%,100%{background:rgba(217,119,6,.04);}50%{background:rgba(217,119,6,.11);}}
+/* Lot card buffer shimmer during inventory update */
+@keyframes lotShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.lots-updating .lot-card{position:relative;overflow:hidden;pointer-events:none;}
+.lots-updating .lot-card::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.55) 40%,rgba(255,255,255,0.55) 60%,transparent 100%);background-size:200% 100%;animation:lotShimmer 1.1s linear infinite;z-index:10;border-radius:var(--r-md);}
+.lot-moved-today{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:10px;font-weight:700;color:#b45309;background:#fef3c7;border:1px solid #fde68a;border-radius:5px;padding:3px 7px;letter-spacing:0.02em;}
 .alert-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:99px;font-size:10px;font-weight:700;letter-spacing:0.05em;}
 .alert-pill-red{background:var(--red-lt);color:var(--red);}
 .alert-pill-yellow{background:var(--amber-lt);color:var(--amber);}
@@ -847,7 +852,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 <div id="toastContainer"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyZ_z6uZB15eWlzt5CxrBBAB1CZV5YxCU2cwVh5YDbyzSc3VgF3QQN7wrm1ydVi04BVZw/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwql_zCJyCEeNd6ztcy3YDQvKFX78XZDzwBXTRVcEWnE8QH6LeZYi0LxBv-RY2OyGaJw/exec';
 
 let masterRows=[],stockRows=[],inventoryRows=[],filteredInv=[],selectedLot=null,pendingRows=[],summaryCache=null;
 let thresholdMap={},stockByCodeMap={},thresholdsReady=false;
@@ -1569,7 +1574,10 @@ async function loadInventory(){
   const btn=document.getElementById('refreshInvBtn');const txt=document.getElementById('refreshInvTxt');const spinner=document.getElementById('refreshInvSpinner');
   if(btn)btn.disabled=true;if(txt)txt.style.display='none';if(spinner)spinner.style.display='inline';
   try{
-    const data=await api('getInventory');
+    const [data] = await Promise.all([
+      api('getInventory'),
+      loadTodayOutputs()
+    ]);
     stockRows=data.rows||[];inventoryRows=stockRows.filter(r=>Number(r.PIECES_REMAINING)>0);
     rebuildStockByCode();populateOutputDropdowns();updateOutputKpis();filterOutput();
     showToast('Inventory refreshed','info');
@@ -1633,6 +1641,11 @@ function renderLots(){
     const isSelected=selectedLot&&selectedLot.MATERIAL_CODE===r.MATERIAL_CODE&&selectedLot.LOT_NO===r.LOT_NO;
     const pcsCol=pcs>20?'var(--green)':pcs>5?'var(--amber)':'var(--red)';
     const alertBadge=lvl==='red'?'<div class="alert-pill alert-pill-red" style="margin-top:8px;border-radius:var(--r-sm);padding:3px 8px">▼ Below min ('+(thresholdMap[r.MATERIAL_CODE]||'?')+' req.)</div>':lvl==='yellow'?'<div class="alert-pill alert-pill-yellow" style="margin-top:8px;border-radius:var(--r-sm);padding:3px 8px">≈ Near min ('+(thresholdMap[r.MATERIAL_CODE]||'?')+' req.)</div>':'';
+    // Today's move-out warning for operator
+    const movedTodayElapsed = _todayMoveOutElapsed(String(r.MATERIAL_CODE||'').trim(), String(r.LOT_NO||'').trim());
+    const movedTodayBadge = movedTodayElapsed
+      ? `<div class="lot-moved-today">⚠️ Moved out today · ${movedTodayElapsed}</div>`
+      : '';
     return`<div class="lot-card ${pcs===0?'empty':''} ${isSelected?'selected':''} ${alertCls}" onclick="${pcs>0?'selectLot('+i+')':''}">
       ${brandColorMap[r.BRAND]?`<div style="position:absolute;top:0;left:0;right:0;height:4px;background:${brandColorMap[r.BRAND]};border-radius:var(--r-md) var(--r-md) 0 0"></div>`:''}
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px;margin-top:${brandColorMap[r.BRAND]?'4px':'0'}">
@@ -1649,6 +1662,7 @@ function renderLots(){
       ${takenOut>0?'<div style="font-size:11px;color:var(--red);margin-top:4px;font-family:\'IBM Plex Mono\',monospace">▼ '+takenOut+' out ('+win+')</div>':''}
       <div style="font-size:11px;color:var(--muted);margin-top:4px">${sqm.toFixed(2)} m²</div>
       ${r.USER?'<div style="font-size:10px;color:var(--blue);margin-top:4px;font-weight:500;font-family:\'IBM Plex Mono\',monospace">👤 '+r.USER+'</div>':''}
+      ${movedTodayBadge}
       ${alertBadge}
     </div>`;
   }).join('');
@@ -1682,19 +1696,110 @@ function calcDispatchPreview(){
   prev.style.display='block';btn.disabled=false;
 }
 
-async function confirmDispatch(){
-  if(!selectedLot)return;const pcs=Number(document.getElementById('dispatch-pcs').value||0);if(pcs<=0)return;
+// Today's move-out history for dupe detection (loaded/refreshed on output tab open + after each dispatch)
+let todayOutputsCache = []; // array of { key: "CODE|LOT|PCS", pcs, tsMs, tsStr }
+
+function _parseTsToMs(tsStr) {
+  if (!tsStr) return 0;
+  const s = String(tsStr).trim();
+  // Handle "2026-04-28 14:05:22" or "2026-04-28T14:05:22"
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})/);
+  if (m) return new Date(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +m[6]).getTime();
+  return 0;
+}
+
+function _todayStr() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  return now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+}
+
+async function loadTodayOutputs() {
+  try {
+    const today = _todayStr();
+    const data = await api('getSummary', { from: today, to: today });
+    const outputs = data.outputs || [];
+    todayOutputsCache = outputs.map(r => ({
+      key: [String(r.MATERIAL_CODE||'').trim(), String(r.LOT_NO||'').trim(), Number(r.PCS_OUT||0)].join('|'),
+      materialCode: String(r.MATERIAL_CODE||'').trim(),
+      lotNo: String(r.LOT_NO||'').trim(),
+      pcs: Number(r.PCS_OUT||0),
+      tsMs: _parseTsToMs(r.Timestamp),
+      tsStr: r.Timestamp || ''
+    }));
+  } catch(e) {
+    console.warn('Could not load today outputs for dupe check:', e.message);
+  }
+}
+
+function _fmtElapsed(ms) {
+  const totalSecs = Math.floor(ms / 1000);
+  const hrs  = Math.floor(totalSecs / 3600);
+  const mins = Math.floor((totalSecs % 3600) / 60);
+  const secs = totalSecs % 60;
+  if (hrs > 0)  return hrs + ' hr' + (hrs>1?'s':'') + ' ' + mins + ' min ' + secs + ' sec ago';
+  if (mins > 0) return mins + ' min ' + secs + ' sec ago';
+  return secs + ' sec ago';
+}
+
+// Returns elapsed string if this lot/code was moved out today, null otherwise
+function _todayMoveOutElapsed(materialCode, lotNo) {
+  const now = Date.now();
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const match = todayOutputsCache
+    .filter(r => r.materialCode === materialCode && r.lotNo === String(lotNo).trim() && r.tsMs >= todayStart.getTime())
+    .sort((a,b) => b.tsMs - a.tsMs)[0]; // most recent today
+  if (!match) return null;
+  return _fmtElapsed(now - match.tsMs);
+}
+
+async function confirmDispatch(bypassDupeCheck) {
+  if(!selectedLot)return;
+  const pcs = Number(document.getElementById('dispatch-pcs').value||0);
+  if(pcs <= 0) return;
+
+  // ── Duplicate detection using today's full move-out history ──
+  if (!bypassDupeCheck) {
+    const dupeKey = [selectedLot.MATERIAL_CODE, selectedLot.LOT_NO, pcs].join('|');
+    const now = Date.now();
+    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    const dupeMatch = todayOutputsCache.find(r =>
+      r.key === dupeKey && r.tsMs >= todayStart.getTime()
+    );
+    if (dupeMatch) {
+      const elapsed = now - dupeMatch.tsMs;
+      document.getElementById('dupeElapsed').textContent = _fmtElapsed(elapsed);
+      document.getElementById('dupeCode').textContent   = selectedLot.MATERIAL_CODE || '—';
+      document.getElementById('dupeLot').textContent    = selectedLot.LOT_NO || '—';
+      document.getElementById('dupePcs').textContent    = pcs;
+      document.getElementById('dupeWarnModal').style.display = 'flex';
+      return;
+    }
+  }
+
   const btn=document.getElementById('dispatchBtn');btn.disabled=true;btn.textContent='Saving…';
+
+  // ── Show buffer shimmer on all lot cards while saving ─────────
+  const lotsGrid = document.getElementById('lotsGrid');
+  if (lotsGrid) lotsGrid.classList.add('lots-updating');
+
   try{
     const result=await api('saveOutput',{row:{SLOC:selectedLot.SLOC,BRAND:selectedLot.BRAND,MATERIAL_CODE:selectedLot.MATERIAL_CODE,LOT_NO:selectedLot.LOT_NO,THICKNESS:selectedLot.THICKNESS,SIZE:selectedLot.SIZE,PCS_OUT:pcs},user:currentUser});
+
     showToast('Moved out '+pcs+' pcs. Remaining: '+result.remaining,'success');
     document.getElementById('dispatchCard').style.display='none';selectedLot=null;
-    const data=await api('getInventory');
+
+    // Refresh inventory + today's outputs cache together
+    const [data] = await Promise.all([
+      api('getInventory'),
+      loadTodayOutputs()
+    ]);
     stockRows=data.rows||[];inventoryRows=stockRows.filter(r=>Number(r.PIECES_REMAINING)>0);
     rebuildStockByCode();updateOutputKpis();filterOutput();renderStockViewer();
-    // Reload recent move outs if visible
     if(document.getElementById('roTbody'))loadRecentOutputs();
   }catch(e){showToast('Move out failed: '+e.message,'error');}
+
+  if (lotsGrid) lotsGrid.classList.remove('lots-updating');
   btn.disabled=false;btn.textContent='📤 Confirm Move Out';
 }
 
@@ -3192,5 +3297,29 @@ async function loadEditPermissions(){
 // ── INIT ─────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',()=>{loadUsers();});
 </script>
+<!-- ── DUPLICATE DISPATCH WARNING MODAL ─────────────────────── -->
+<div id="dupeWarnModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:var(--surface,#fff);border-radius:14px;padding:28px 28px 22px;max-width:380px;width:92%;box-shadow:0 8px 40px rgba(0,0,0,0.22);border-top:5px solid #f59e0b">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <span style="font-size:26px">⚠️</span>
+      <span style="font-size:17px;font-weight:700;color:#92400e">Possible Duplicate Move Out</span>
+    </div>
+    <div style="font-size:13px;color:var(--text,#1c1917);line-height:1.6;background:#fef3c7;border-radius:8px;padding:12px 14px;margin-bottom:16px">
+      The same material was already moved out today —
+      <strong style="color:#b45309" id="dupeElapsed">—</strong>.<br>
+      <span style="color:#6b7280;font-size:12px">Code: <b id="dupeCode">—</b> &nbsp;·&nbsp; Lot: <b id="dupeLot">—</b> &nbsp;·&nbsp; Qty: <b id="dupePcs">—</b> pcs</span>
+    </div>
+    <div style="font-size:13px;color:var(--muted,#78716c);margin-bottom:20px">
+      If this was intentional (genuine second move), tap <b>Yes, Re-enter</b>.<br>
+      If it was a network retry or mistake, tap <b>Cancel</b>.
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn" style="background:#e5e7eb;color:#374151;font-size:13px;padding:8px 18px"
+        onclick="document.getElementById('dupeWarnModal').style.display='none'">✕ Cancel</button>
+      <button class="btn btn-red" style="font-size:13px;padding:8px 18px"
+        onclick="document.getElementById('dupeWarnModal').style.display='none';confirmDispatch(true)">✓ Yes, Re-enter</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
