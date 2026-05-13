@@ -220,6 +220,85 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 
 /* Master Data section styles */
 .master-section{margin-bottom:20px;}
+
+/* ── DIAGONAL SHIMMER — for unloaded subsections ─────────────
+   Add class "section-loading" to any card/collapsible to activate.
+   A 135° diagonal sweep runs over the content until data arrives.
+   Remove "section-loading" once data is rendered.
+─────────────────────────────────────────────────────────────── */
+@keyframes diagShimmer {
+  0%   { background-position: 200% 200%; }
+  100% { background-position: -200% -200%; }
+}
+.section-loading {
+  position: relative;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+.section-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    transparent 30%,
+    rgba(217,119,6,0.08) 40%,
+    rgba(255,255,255,0.38) 50%,
+    rgba(217,119,6,0.08) 60%,
+    transparent 70%,
+    transparent 100%
+  );
+  background-size: 400% 400%;
+  animation: diagShimmer 1.6s ease-in-out infinite;
+  z-index: 5;
+  border-radius: inherit;
+}
+/* Skeleton rows — shown inside tbody while loading */
+.skel-row td {
+  padding: 0 14px !important;
+  border-bottom: 1px solid var(--border2) !important;
+}
+.skel-cell {
+  height: 13px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--border) 25%,
+    var(--border2) 50%,
+    var(--border) 75%
+  );
+  background-size: 200% 100%;
+  animation: skelPulse 1.4s ease-in-out infinite;
+  margin: 10px 0;
+}
+@keyframes skelPulse {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+/* KPI skeleton */
+.kpi-card.kpi-loading .kpi-val {
+  display: inline-block;
+  width: 56px;
+  height: 26px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--border) 25%, var(--border2) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: skelPulse 1.4s ease-in-out infinite;
+  vertical-align: middle;
+}
+.kpi-card.kpi-loading .kpi-sub {
+  display: inline-block;
+  width: 72px;
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--border) 25%, var(--border2) 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: skelPulse 1.4s ease-in-out infinite;
+  margin-top: 6px;
+}
+
 @media(max-width:768px){.page{padding:16px 14px 40px;}.form-row{grid-template-columns:1fr 1fr;}.kpi-row{grid-template-columns:1fr 1fr;}.lot-grid{grid-template-columns:1fr 1fr;}.topbar-logo{font-size:15px;margin-right:16px;}.tab-btn span{display:none;}}
 @media(max-width:480px){.form-row{grid-template-columns:1fr;}.lot-grid{grid-template-columns:1fr;}}
 </style>
@@ -858,6 +937,8 @@ let masterRows=[],stockRows=[],inventoryRows=[],filteredInv=[],selectedLot=null,
 let thresholdMap={},stockByCodeMap={},thresholdsReady=false;
 let currentReportView='summary';
 let currentUser='';
+let masterUnlocked=false;
+const MASTER_PASSWORD='100';
 let brandColorMap={};  // brand name → hex color from Google Sheet
 let editPermissions = { enableInputEdit:false, enableInputDelete:false, enableOutputEdit:false, enableOutputDelete:false };
 
@@ -1102,6 +1183,15 @@ const SECTION_META = {
 };
 
 function selectSection(name){
+  if(name==='master'){
+    showMasterPwModal(function(){
+      selectedSection='master';
+      ['input','output','reports','master'].forEach(s=>{
+        document.getElementById('ls-btn-'+s).classList.toggle('active-btn', s==='master');
+      });
+    });
+    return;
+  }
   selectedSection = name;
   ['input','output','reports','master'].forEach(s=>{
     document.getElementById('ls-btn-'+s).classList.toggle('active-btn', s===name);
@@ -1133,6 +1223,7 @@ async function loadUsers(){
 
 async function enterApp(user){
   currentUser = user;
+  masterUnlocked = false; // reset on each login
   // Enter app immediately — show UI right away
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='block';
@@ -1140,7 +1231,11 @@ async function enterApp(user){
   document.getElementById('rpt-from').value=today;
   document.getElementById('rpt-to').value=today;
   applyTabVisibility();
-  switchTab(selectedSection==='reports'?'reports':selectedSection);
+  // Non-admin users cannot land on master even if they selected it on login screen
+  const landingTab = selectedSection === 'master' && currentUser.trim().toLowerCase() !== 'admin'
+    ? 'input'
+    : (selectedSection==='reports' ? 'reports' : selectedSection);
+  switchTab(landingTab);
   showToast('Welcome '+user+'! Loading data…','info');
 
   // Load inventory + master data in parallel (no password needed)
@@ -1175,6 +1270,7 @@ async function enterApp(user){
             const init = initials[b.row]||'';
             const tp   = String(Number(t.value)).padStart(2,'0');
             const sp   = String(s.value).padStart(5,'0');
+            // init can be 4 chars (old) or 7 chars (new) — find by exact match
             const mc   = matCodeVals.find(m=>m.value===init+tp+sp);
             masterRows.push({
               SLOC: sl,
@@ -1227,6 +1323,17 @@ function doLogout(){
 
 // ── TAB SWITCHING ────────────────────────────────────────────
 function switchTab(name){
+  if(name==='master' && !masterUnlocked){
+    showMasterPwModal(function(){
+      masterUnlocked=true;
+      _doSwitchTab('master');
+    });
+    return;
+  }
+  _doSwitchTab(name);
+}
+
+function _doSwitchTab(name){
   ['input','output','reports','master'].forEach(t=>{
     document.getElementById('page-'+t).classList.remove('active');
     document.getElementById('tab-'+t).classList.remove('active');
@@ -1304,28 +1411,50 @@ function onThickChange(){updateMaterialCodePreview();}
 function onSizeChange(){updateMaterialCodePreview();}
 
 // Reverse-lookup: typed material code → fill brand/thickness/size dropdowns
-// Code format: [4-char initials][2-digit thickness][5-char size] = 11 chars total
+// Supports BOTH formats:
+//   Old: [4-char initials][2-digit thick][5-char size] = 11 chars  e.g. PAAP3008040
+//   New: [7-char initials][2-digit thick][5-char size] = 14 chars  e.g. PPPCARA3008040
+// Detection: tries to match initials by scanning masterRows for longest prefix match.
 function onMatcodeInput(){
   const typed=document.getElementById('in-matcode').value.trim().toUpperCase();
   if(!typed){calcInputPreview();return;}
-  if(typed.length!==11){showToast('Material code must be 11 characters (e.g. PAAP3008040)','error');return;}
 
-  const initials=typed.slice(0,4);          // e.g. PAAP
-  const thickRaw=typed.slice(4,6);          // e.g. 30  → thickness = 30
-  const sizeRaw=typed.slice(6);             // e.g. 08040 → size = 8040 or 08040
+  // Valid lengths: 11 (4+2+5) or 14 (7+2+5)
+  if(typed.length!==11&&typed.length!==14){
+    showToast('Material code must be 11 chars (e.g. PAAP3008040) or 14 chars (e.g. PPPCARA3008040)','error');
+    return;
+  }
+
+  // --- Detect initials length by matching against masterRows ---
+  // Try 7-char initials first (longer match wins), then fall back to 4-char
+  let initials='', thickRaw='', sizeRaw='', brandRow=null;
+
+  if(typed.length===14){
+    // Must be 7-char initials
+    initials=typed.slice(0,7);
+    thickRaw=typed.slice(7,9);
+    sizeRaw=typed.slice(9);
+    brandRow=masterRows.find(r=>String(r.MATERIAL_CODE_INITIALS||'').trim().toUpperCase()===initials);
+  } else {
+    // 11-char: could still be 4-char initials — but try 7-char first in case
+    // user typed a short code where 7-char initials happen to be shorter
+    // For 11-char codes, initials must be 4 chars
+    initials=typed.slice(0,4);
+    thickRaw=typed.slice(4,6);
+    sizeRaw=typed.slice(6);
+    brandRow=masterRows.find(r=>String(r.MATERIAL_CODE_INITIALS||'').trim().toUpperCase()===initials);
+  }
 
   const thickNum=String(Number(thickRaw));  // strip leading zero: "06"→"6", "30"→"30"
 
-  // Find brand from any master row with matching initials
-  const brandRow=masterRows.find(r=>String(r.MATERIAL_CODE_INITIALS||'').trim().toUpperCase()===initials);
   // Find thickness from any master row where THICKNESS matches
   const thickRow=masterRows.find(r=>String(r.THICKNESS||'').trim()===thickNum);
   // Find size from any master row where SIZE matches (try padded and unpadded)
   const sizeRow=masterRows.find(r=>String(r.SIZE||'').trim()===sizeRaw||String(r.SIZE||'').trim()===String(Number(sizeRaw)));
 
-  if(!brandRow){showToast('Initials "'+initials+'" not found in master','error');return;}
-  if(!thickRow){showToast('Thickness "'+thickNum+'mm" not found in master','error');return;}
-  if(!sizeRow){showToast('Size "'+sizeRaw+'" not found in master','error');return;}
+  if(!brandRow){showToast('Initials "'+initials+'" not found in master data','error');return;}
+  if(!thickRow){showToast('Thickness "'+thickNum+'mm" not found in master data','error');return;}
+  if(!sizeRow){showToast('Size "'+sizeRaw+'" not found in master data','error');return;}
 
   const brand=brandRow.BRAND||'';
   const thick=String(thickRow.THICKNESS||'');
@@ -1352,8 +1481,10 @@ function updateMaterialCodePreview(){
   const row=masterRows.find(r=>r.BRAND===brand);
   const initials=row?String(row.MATERIAL_CODE_INITIALS||'').trim():'';
   if(!initials){document.getElementById('in-matcode').value='';calcInputPreview();return;}
+  // thick: always pad to 2 digits. size: always pad to 5 digits.
+  // initials can be 4 or 7 chars — use as-is, no padding needed.
   const thickPad=thick?String(Number(thick)).padStart(2,'0'):'';
-  const sizePad=size?size.padStart(5,'0'):'';
+  const sizePad=size?String(size).padStart(5,'0'):'';
   document.getElementById('in-matcode').value=initials+thickPad+sizePad;
   calcInputPreview();
 }
@@ -1386,7 +1517,7 @@ function addPendingRow(){
   const mr=findMasterRow(brand,thick,size)||findMasterRow(null,null,size);
   const codeRow=findMasterRow(brand,thick,size)||findMasterRow(brand,null,null);
   let code=document.getElementById('in-matcode').value.trim();
-  if(codeRow){const init=String(codeRow.MATERIAL_CODE_INITIALS||'').trim();code=init+String(Number(thick)).padStart(2,'0')+size.padStart(5,'0');}
+  if(codeRow){const init=String(codeRow.MATERIAL_CODE_INITIALS||'').trim();code=init+String(Number(thick)).padStart(2,'0')+String(size).padStart(5,'0');}
   const sqmFac=mr?Number(mr.Sqmtr||0):0;
   const sqm=Math.round(pcs*sqmFac*10000)/10000;
   const na=Math.round(pcs*sqmFac*(Number(thick)/4)*10000)/10000;
@@ -1461,7 +1592,7 @@ async function addAndSaveNow(){
   // ── Duplicate check ──────────────────────────────────────────
   const codeRow=findMasterRow(brand,thick,size)||findMasterRow(brand,null,null);
   let code=document.getElementById('in-matcode').value.trim();
-  if(codeRow){const init=String(codeRow.MATERIAL_CODE_INITIALS||'').trim();code=init+String(Number(thick)).padStart(2,'0')+size.padStart(5,'0');}
+  if(codeRow){const init=String(codeRow.MATERIAL_CODE_INITIALS||'').trim();code=init+String(Number(thick)).padStart(2,'0')+String(size).padStart(5,'0');}
   const dupInStock=stockRows.find(r=>
     String(r.MATERIAL_CODE||'').trim()===String(code).trim()&&
     String(r.LOT_NO||'').trim()===String(lot).trim()&&
@@ -1494,6 +1625,21 @@ async function submitPending(){
 }
 
 // ── STOCK VIEWER ─────────────────────────────────────────────
+// ── SHIMMER HELPERS ──────────────────────────────────────────
+function skelRows(colCount, rowCount){
+  rowCount = rowCount || 5;
+  const widths = [30,60,45,20,25,15,20,18,22,18,20,15];
+  return Array.from({length: rowCount}, () =>
+    `<tr class="skel-row">${Array.from({length: colCount}, (_,i) =>
+      `<td><div class="skel-cell" style="width:${widths[i%widths.length]+Math.round(Math.random()*20)}%"></div></td>`
+    ).join('')}</tr>`
+  ).join('');
+}
+function startSectionShimmer(collapsibleId){ const el=document.getElementById(collapsibleId); if(el) el.classList.add('section-loading'); }
+function stopSectionShimmer(collapsibleId){ const el=document.getElementById(collapsibleId); if(el) el.classList.remove('section-loading'); }
+function startKpiShimmer(ids){ ids.forEach(id=>{ const el=document.getElementById(id); if(el){ const card=el.closest('.kpi-card'); if(card) card.classList.add('kpi-loading'); }}); }
+function stopKpiShimmer(ids){ ids.forEach(id=>{ const el=document.getElementById(id); if(el){ const card=el.closest('.kpi-card'); if(card) card.classList.remove('kpi-loading'); }}); }
+
 async function loadStockViewer(){
   document.getElementById('svSpinnerWrap').style.display='inline-block';
   const hTxt=document.getElementById('headerRefreshTxt');const hSpin=document.getElementById('headerRefreshSpinner');
@@ -1502,6 +1648,10 @@ async function loadStockViewer(){
   if(hTxt)hTxt.style.display='none';if(hSpin)hSpin.style.display='inline-block';
   if(svTxt)svTxt.style.display='none';if(svSpin)svSpin.style.display='inline-block';
   if(hBtn)hBtn.disabled=true;if(svBtn)svBtn.disabled=true;
+  // Shimmer the stock table while loading
+  startSectionShimmer('svCollapsible');
+  const svTbody=document.getElementById('svTbody');
+  if(svTbody) svTbody.innerHTML=skelRows(11,6);
   try{
     const data=await api('getInventory');
     stockRows=data.rows||[];inventoryRows=stockRows.filter(r=>Number(r.PIECES_REMAINING)>0);
@@ -1513,6 +1663,7 @@ async function loadStockViewer(){
     const svLot = document.getElementById('sv-lot'); if(svLot) svLot.value = '';
     renderStockViewer(); showToast('Stock refreshed — '+stockRows.length+' lots','info');
   }catch(e){showToast('Refresh failed: '+e.message,'error');}
+  stopSectionShimmer('svCollapsible');
   document.getElementById('svSpinnerWrap').style.display='none';
   if(hTxt)hTxt.style.display='inline';if(hSpin)hSpin.style.display='none';
   if(svTxt)svTxt.style.display='inline';if(svSpin)svSpin.style.display='none';
@@ -1573,6 +1724,7 @@ function populateOutputDropdowns(){
 async function loadInventory(){
   const btn=document.getElementById('refreshInvBtn');const txt=document.getElementById('refreshInvTxt');const spinner=document.getElementById('refreshInvSpinner');
   if(btn)btn.disabled=true;if(txt)txt.style.display='none';if(spinner)spinner.style.display='inline';
+  startKpiShimmer(['kpi-lots','kpi-pcs','kpi-sqm','kpi-alerts']);
   try{
     const [data] = await Promise.all([
       api('getInventory'),
@@ -1582,6 +1734,7 @@ async function loadInventory(){
     rebuildStockByCode();populateOutputDropdowns();updateOutputKpis();filterOutput();
     showToast('Inventory refreshed','info');
   }catch(e){showToast('Load failed: '+e.message,'error');}
+  stopKpiShimmer(['kpi-lots','kpi-pcs','kpi-sqm','kpi-alerts']);
   if(btn)btn.disabled=false;if(txt)txt.style.display='inline';if(spinner)spinner.style.display='none';
 }
 
@@ -1897,6 +2050,12 @@ async function loadReports(){
   if(!from||!to){showToast('Select a date range','error');return;}
   const lb=document.getElementById('rptLoadBtn');const lt=document.getElementById('rptLoadTxt');const ls=document.getElementById('rptLoadSpinner');
   if(lb)lb.disabled=true;if(lt)lt.style.display='none';if(ls)ls.style.display='inline';
+  // Shimmer all report sections while loading
+  ['rpt-summary','rpt-movements','rpt-inputs','rpt-outputs','rpt-history'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.classList.add('section-loading');
+  });
+  const skels = {'rpt-summary-tbody':10,'rpt-movements-tbody':5,'rpt-inputs-tbody':11,'rpt-outputs-tbody':11,'rpt-history-tbody':12};
+  Object.entries(skels).forEach(([id,cols])=>{ const el=document.getElementById(id); if(el) el.innerHTML=skelRows(cols,5); });
   try{
     const[summaryData,txData,moveData]=await Promise.all([
       api('getSummary',{from,to}),
@@ -1913,6 +2072,9 @@ async function loadReports(){
     }
     showToast('Reports loaded','info');
   }catch(e){showToast('Load failed: '+e.message,'error');}
+  ['rpt-summary','rpt-movements','rpt-inputs','rpt-outputs','rpt-history'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.classList.remove('section-loading');
+  });
   if(lb)lb.disabled=false;if(lt)lt.style.display='inline';if(ls)ls.style.display='none';
 }
 
@@ -2152,7 +2314,8 @@ async function loadRecentInputs(){
   if(!from||!to){ showToast('Select a date range','error'); return; }
   const spinner = document.getElementById('riSpinnerWrap'); const tbody = document.getElementById('riTbody');
   spinner.style.display = 'inline-block';
-  tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>';
+  tbody.innerHTML = skelRows(12, 5);
+  startSectionShimmer('riCollapsible');
   // Reset filters on each load
   clearRiFilters();
   try{
@@ -2161,6 +2324,7 @@ async function loadRecentInputs(){
     fillRiFilterDropdowns(riRowsCache);
     renderRiRows(riRowsCache);
   }catch(e){ tbody.innerHTML = '<tr class="empty-row"><td colspan="12">Load failed: '+e.message+'</td></tr>'; showToast('Load failed: '+e.message,'error'); }
+  stopSectionShimmer('riCollapsible');
   spinner.style.display = 'none';
 }
 
@@ -2405,7 +2569,7 @@ function updateEditMaterialCode(){
   let mr=masterRows.find(m=>String(m.BRAND||'').trim().toLowerCase()===brand.toLowerCase()&&String(m.THICKNESS||'').trim()===thickStr&&String(m.SIZE||'').trim()===size);
   if(!mr)mr=masterRows.find(m=>String(m.BRAND||'').trim().toLowerCase()===brand.toLowerCase()&&String(m.THICKNESS||'').trim()===thickStr);
   if(!mr)mr=masterRows.find(m=>String(m.BRAND||'').trim().toLowerCase()===brand.toLowerCase());
-  if(mr&&mr.MATERIAL_CODE_INITIALS){const init=String(mr.MATERIAL_CODE_INITIALS||'').trim();const tp=thickStr?String(Number(thickStr)).padStart(2,'0'):'';const sp=size?size.padStart(5,'0'):'';document.getElementById('em-code').textContent=init+tp+sp||'—';document.getElementById('em-info').textContent=brand+' · '+thickStr+'mm · '+size;}
+  if(mr&&mr.MATERIAL_CODE_INITIALS){const init=String(mr.MATERIAL_CODE_INITIALS||'').trim();const tp=thickStr?String(Number(thickStr)).padStart(2,'0'):'';const sp=size?String(size).padStart(5,'0'):'';document.getElementById('em-code').textContent=init+tp+sp||'—';document.getElementById('em-info').textContent=brand+' · '+thickStr+'mm · '+size;}
   else{document.getElementById('em-code').textContent='⚠️ ???';document.getElementById('em-info').textContent=brand+' (not in MasterData)';}
   calcEditPreview();
 }
@@ -2436,7 +2600,7 @@ async function saveEditedStock(){
   if(!mr)mr=masterRows.find(m=>String(m.BRAND||'').trim().toLowerCase()===brand.toLowerCase()&&String(m.THICKNESS||'').trim()===thickStr);
   if(!mr)mr=masterRows.find(m=>String(m.BRAND||'').trim().toLowerCase()===brand.toLowerCase());
   let materialCode=r.MATERIAL_CODE;
-  if(mr&&mr.MATERIAL_CODE_INITIALS){const init=String(mr.MATERIAL_CODE_INITIALS||'').trim();materialCode=init+String(Number(thickStr)).padStart(2,'0')+size.padStart(5,'0');}
+  if(mr&&mr.MATERIAL_CODE_INITIALS){const init=String(mr.MATERIAL_CODE_INITIALS||'').trim();materialCode=init+String(Number(thickStr)).padStart(2,'0')+String(size).padStart(5,'0');}
   if(!lot||pcs<0){showToast('Check lot and pieces','error');return;}
   const btn=document.getElementById('emSaveBtn');
   document.getElementById('emSaveTxt').style.display='none';document.getElementById('emSaveSpinner').style.display='inline';btn.disabled=true;
@@ -2458,7 +2622,7 @@ const MASTER_COLUMNS=[
    fields:[{key:'SLOC',label:'SLOC Value',type:'text',placeholder:'e.g. BRANDED or WAREHOUSE'}]},
   {key:'BRAND',label:'🏢 Brand',color:'#d97706',textColor:'#fff',desc:'Product brand names with 4-char code initials',
    extra:['MATERIAL_CODE_INITIALS'],
-   fields:[{key:'BRAND',label:'Brand Name',type:'text',placeholder:'e.g. SHARON GOLD BWP B/B'},{key:'MATERIAL_CODE_INITIALS',label:'Code Initials (4 chars)',type:'text',placeholder:'e.g. BKSP'}]},
+   fields:[{key:'BRAND',label:'Brand Name',type:'text',placeholder:'e.g. SHARON GOLD BWP B/B'},{key:'MATERIAL_CODE_INITIALS',label:'Code Initials (4 chars)',type:'text',placeholder:'e.g. BKSP or PPPCARA'}]},
   {key:'THICKNESS',label:'📐 Thickness',color:'#059669',textColor:'#fff',desc:'Thickness values in mm with numeric codes',
    extra:['THICKNESS_CODE'],
    fields:[{key:'THICKNESS',label:'Thickness (mm)',type:'number',placeholder:'e.g. 6'},{key:'THICKNESS_CODE',label:'Thickness Code',type:'number',placeholder:'e.g. 60'}]},
@@ -2976,7 +3140,8 @@ async function loadRecentOutputs(){
   if(!from||!to){ showToast('Select a date range','error'); return; }
   const spinner = document.getElementById('roSpinnerWrap'); const tbody = document.getElementById('roTbody');
   if(spinner) spinner.style.display = 'inline-block';
-  tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>';
+  tbody.innerHTML = skelRows(12, 5);
+  startSectionShimmer('roCollapsible');
   // Reset filters on each load
   clearRoFilters();
   try{
@@ -2985,6 +3150,7 @@ async function loadRecentOutputs(){
     fillRoFilterDropdowns(roRowsCache);
     renderRoRows(roRowsCache);
   }catch(e){ tbody.innerHTML = '<tr class="empty-row"><td colspan="12">Load failed: '+e.message+'</td></tr>'; showToast('Load failed: '+e.message,'error'); }
+  stopSectionShimmer('roCollapsible');
   if(spinner) spinner.style.display = 'none';
 }
 
@@ -3047,7 +3213,8 @@ async function saveEditedOutputPcs(){
 async function loadInputEditLogs(){
   const spinner=document.getElementById('ielSpinnerWrap');const tbody=document.getElementById('ielTbody');
   if(spinner)spinner.style.display='inline-block';
-  tbody.innerHTML='<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>';
+  tbody.innerHTML=skelRows(3, 4);
+  startSectionShimmer('ielCollapsible');
   try{
     const data=await api('getInputEditLogs');
     const rows=(data.rows||[]).slice().reverse();
@@ -3058,6 +3225,7 @@ async function loadInputEditLogs(){
       <td style="font-size:12px;color:var(--text2)">${r['What Was Edited']||r['Action Details']||r['What Was Edited (Before → After / Action)']||r['What Was Edited (Before → After)']||'—'}</td>
     </tr>`).join('');}
   }catch(e){tbody.innerHTML='<tr class="empty-row"><td colspan="3">Load failed: '+e.message+'</td></tr>';showToast('Load failed: '+e.message,'error');}
+  stopSectionShimmer('ielCollapsible');
   if(spinner)spinner.style.display='none';
 }
 
@@ -3065,7 +3233,8 @@ async function loadInputEditLogs(){
 async function loadOutputEditLogs(){
   const spinner=document.getElementById('oelSpinnerWrap');const tbody=document.getElementById('oelTbody');
   if(spinner)spinner.style.display='inline-block';
-  tbody.innerHTML='<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--muted)"><span class="spinner"></span> Loading…</td></tr>';
+  tbody.innerHTML=skelRows(3, 4);
+  startSectionShimmer('oelCollapsible');
   try{
     const data=await api('getOutputEditLogs');
     const rows=(data.rows||[]).slice().reverse();
@@ -3076,6 +3245,7 @@ async function loadOutputEditLogs(){
       <td style="font-size:12px;color:var(--text2)">${r['What Was Edited']||r['Action Details']||r['What Was Edited (Before → After / Action)']||r['What Was Edited (Before → After)']||'—'}</td>
     </tr>`).join('');}
   }catch(e){tbody.innerHTML='<tr class="empty-row"><td colspan="3">Load failed: '+e.message+'</td></tr>';showToast('Load failed: '+e.message,'error');}
+  stopSectionShimmer('oelCollapsible');
   if(spinner)spinner.style.display='none';
 }
 
@@ -3294,6 +3464,60 @@ async function loadEditPermissions(){
   }catch(e){ console.warn('Could not load edit permissions:', e.message); }
 }
 
+// ── MASTER PASSWORD MODAL ────────────────────────────────────
+let _masterPwCallback = null;
+
+function showMasterPwModal(onSuccess){
+  // Only the user named 'admin' (case-insensitive) may enter master
+  if(!currentUser || currentUser.trim().toLowerCase() !== 'admin'){
+    // Show a blocked message instead
+    const modal = document.getElementById('masterPwModal');
+    const pwBox = document.getElementById('masterPwInputWrap');
+    const blockedMsg = document.getElementById('masterPwBlocked');
+    const err = document.getElementById('masterPwError');
+    if(!modal) return;
+    if(pwBox) pwBox.style.display = 'none';
+    if(blockedMsg) blockedMsg.style.display = 'block';
+    if(err) err.style.display = 'none';
+    document.getElementById('masterPwUnlockBtn').style.display = 'none';
+    _masterPwCallback = null;
+    modal.style.display = 'flex';
+    return;
+  }
+  _masterPwCallback = onSuccess;
+  const modal = document.getElementById('masterPwModal');
+  const input = document.getElementById('masterPwInput');
+  const err   = document.getElementById('masterPwError');
+  const pwBox = document.getElementById('masterPwInputWrap');
+  const blockedMsg = document.getElementById('masterPwBlocked');
+  if(!modal) return;
+  if(pwBox) pwBox.style.display = 'block';
+  if(blockedMsg) blockedMsg.style.display = 'none';
+  document.getElementById('masterPwUnlockBtn').style.display = '';
+  input.value = '';
+  err.style.display = 'none';
+  modal.style.display = 'flex';
+  setTimeout(()=>input.focus(), 80);
+}
+
+function closeMasterPwModal(){
+  document.getElementById('masterPwModal').style.display='none';
+  _masterPwCallback = null;
+}
+
+function submitMasterPassword(){
+  const input = document.getElementById('masterPwInput');
+  const err   = document.getElementById('masterPwError');
+  if(input.value === MASTER_PASSWORD){
+    document.getElementById('masterPwModal').style.display='none';
+    if(_masterPwCallback){ _masterPwCallback(); _masterPwCallback=null; }
+  } else {
+    err.style.display='block';
+    input.value='';
+    input.focus();
+  }
+}
+
 // ── INIT ─────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',()=>{loadUsers();});
 </script>
@@ -3318,6 +3542,37 @@ window.addEventListener('DOMContentLoaded',()=>{loadUsers();});
         onclick="document.getElementById('dupeWarnModal').style.display='none'">✕ Cancel</button>
       <button class="btn btn-red" style="font-size:13px;padding:8px 18px"
         onclick="document.getElementById('dupeWarnModal').style.display='none';confirmDispatch(true)">✓ Yes, Re-enter</button>
+    </div>
+  </div>
+</div>
+<!-- ── MASTER PASSWORD MODAL ─────────────────────────────────── -->
+<div id="masterPwModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center">
+  <div style="background:#1c1917;border:1.5px solid rgba(217,119,6,0.4);border-radius:16px;padding:32px 28px 24px;max-width:360px;width:92%;box-shadow:0 16px 48px rgba(0,0,0,0.5);position:relative">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:36px;margin-bottom:10px">🔐</div>
+      <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:4px">Admin Access Required</div>
+      <div style="font-size:12px;color:#78716c">Master section is restricted to admins only</div>
+    </div>
+    <!-- Shown only to non-admin users -->
+    <div id="masterPwBlocked" style="display:none;background:rgba(220,38,38,.15);color:#fca5a5;border:1px solid rgba(220,38,38,.3);border-radius:10px;padding:16px 18px;font-size:13px;font-weight:600;margin-bottom:16px;text-align:center;line-height:1.6">
+      🚫 Access Denied<br>
+      <span style="font-weight:400;font-size:12px;color:#f87171">You are not authorised to access the Master section.<br>Only the Admin user can enter this area.</span>
+    </div>
+    <!-- Shown only to admin user -->
+    <div id="masterPwInputWrap" style="margin-bottom:14px">
+      <label style="font-size:11px;font-weight:600;letter-spacing:0.08em;color:#a8a29e;text-transform:uppercase;display:block;margin-bottom:6px">Admin Password</label>
+      <input id="masterPwInput" type="password" placeholder="Enter password"
+        style="width:100%;padding:11px 14px;border:1.5px solid rgba(255,255,255,.15);border-radius:8px;font-family:inherit;font-size:14px;color:#fff;background:rgba(255,255,255,.08);outline:none;transition:border-color .15s,box-shadow .15s;box-sizing:border-box"
+        onfocus="this.style.borderColor='#d97706';this.style.boxShadow='0 0 0 3px rgba(217,119,6,.2)'"
+        onblur="this.style.borderColor='rgba(255,255,255,.15)';this.style.boxShadow='none'"
+        onkeydown="if(event.key==='Enter')submitMasterPassword();if(event.key==='Escape')closeMasterPwModal()">
+    </div>
+    <div id="masterPwError" style="display:none;background:rgba(220,38,38,.15);color:#fca5a5;border:1px solid rgba(220,38,38,.3);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:500;margin-bottom:12px">
+      ✕ Incorrect password. Access denied.
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="closeMasterPwModal()" style="flex:1;padding:11px;background:rgba(255,255,255,.08);color:#a8a29e;border:1px solid rgba(255,255,255,.12);border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">Cancel</button>
+      <button id="masterPwUnlockBtn" onclick="submitMasterPassword()" style="flex:1;padding:11px;background:#d97706;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background .15s" onmouseover="this.style.background='#b45309'" onmouseout="this.style.background='#d97706'">🔓 Unlock</button>
     </div>
   </div>
 </div>
