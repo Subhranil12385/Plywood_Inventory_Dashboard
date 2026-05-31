@@ -86,6 +86,30 @@ select.ls-pw-input:disabled{
 .btn-primary:hover{background:#292524;}.btn-primary:active{transform:scale(.99);}.btn-primary:disabled{background:var(--muted);cursor:not-allowed;}
 .login-error{background:var(--red-lt);color:var(--red);border-radius:var(--r-sm);padding:10px 14px;font-size:13px;font-weight:500;margin-top:12px;display:none;}
 @media(max-width:560px){.ls-icons{grid-template-columns:repeat(2,1fr);}.ls-icon-emoji{font-size:28px;}.ls-pw-box{padding:20px 18px;}}
+/* ── ENTRY PASSWORD GATE ─────────────────────────────────── */
+#entryGate{position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0c0a09 0%,#1c1917 50%,#0c0a09 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;}
+#entryGate::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 40%,rgba(217,119,6,0.12) 0%,transparent 65%);}
+.eg-wrap{position:relative;z-index:1;width:100%;max-width:360px;padding:24px 16px;display:flex;flex-direction:column;align-items:center;gap:20px;}
+.eg-logo{text-align:center;}
+.eg-logo-title{font-size:26px;font-weight:700;color:#fff;letter-spacing:-0.3px;}
+.eg-logo-title span{color:var(--amber);}
+.eg-logo-company{font-size:11px;font-weight:600;color:var(--amber);letter-spacing:0.1em;text-transform:uppercase;margin-top:3px;}
+.eg-logo-loc{font-size:10px;color:#57534e;margin-top:2px;}
+.eg-lock{font-size:48px;margin-bottom:4px;filter:drop-shadow(0 4px 16px rgba(217,119,6,0.3));}
+.eg-box{background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:16px;padding:28px 24px;width:100%;backdrop-filter:blur(10px);}
+.eg-title{font-size:16px;font-weight:700;color:#fff;text-align:center;margin-bottom:4px;}
+.eg-sub{font-size:12px;color:#78716c;text-align:center;margin-bottom:22px;}
+.eg-input-wrap{position:relative;margin-bottom:14px;}
+.eg-input{width:100%;padding:13px 46px 13px 16px;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;font-family:inherit;font-size:15px;color:#fff;background:rgba(255,255,255,.08);outline:none;transition:border-color .15s,box-shadow .15s;letter-spacing:0.05em;box-sizing:border-box;}
+.eg-input:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(217,119,6,.2);}
+.eg-input::placeholder{color:#44403c;letter-spacing:0;}
+.eg-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#78716c;font-size:16px;padding:4px;transition:color .15s;}
+.eg-eye:hover{color:#e7e5e4;}
+.eg-btn{width:100%;padding:13px;background:var(--amber);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s,transform .1s;letter-spacing:0.02em;}
+.eg-btn:hover{background:#b45309;}.eg-btn:active{transform:scale(.98);}
+.eg-err{background:rgba(220,38,38,.15);color:#fca5a5;border:1px solid rgba(220,38,38,.3);border-radius:8px;padding:9px 14px;font-size:12px;font-weight:500;text-align:center;display:none;margin-top:2px;}
+@keyframes egShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.eg-shake{animation:egShake .35s ease;}
 #app{display:none;}
 .topbar{height:56px;background:#1c1917;display:flex;align-items:center;padding:0 24px;gap:0;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
 .topbar-logo{font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.2px;margin-right:32px;flex-shrink:0;}
@@ -305,7 +329,31 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 </head>
 <body>
 
-<div id="loginScreen">
+<!-- ── ENTRY PASSWORD GATE ─────────────────────────────────── -->
+<div id="entryGate">
+  <div class="eg-wrap">
+    <div class="eg-logo">
+      <div class="eg-lock">🔒</div>
+      <div class="eg-logo-title">Stock<span>ifly</span></div>
+      <div class="eg-logo-company">Century Plyboards (India) Limited</div>
+      <div class="eg-logo-loc">Chennai</div>
+    </div>
+    <div class="eg-box">
+      <div class="eg-title">Protected Access</div>
+      <div class="eg-sub">Enter the access password to continue</div>
+      <div class="eg-input-wrap">
+        <input id="egInput" class="eg-input" type="password" placeholder="Access password…"
+          autocomplete="current-password" spellcheck="false"
+          onkeydown="if(event.key==='Enter')checkEntryPassword()">
+        <button class="eg-eye" id="egEyeBtn" onclick="toggleEgEye()" title="Show/hide password">👁</button>
+      </div>
+      <button class="eg-btn" onclick="checkEntryPassword()">Unlock →</button>
+      <div class="eg-err" id="egErr">✕ Incorrect password. Please try again.</div>
+    </div>
+  </div>
+</div>
+
+<div id="loginScreen" style="display:none;">
   <div class="ls-wrap">
     <!-- Brand -->
     <div class="ls-brand">
@@ -3518,8 +3566,55 @@ function submitMasterPassword(){
   }
 }
 
+// ── ENTRY PASSWORD GATE ─────────────────────────────────────
+const ENTRY_PASSWORD = 'century#@2026';
+
+function checkEntryPassword(){
+  const input = document.getElementById('egInput');
+  const err   = document.getElementById('egErr');
+  if(input.value === ENTRY_PASSWORD){
+    // Correct — dismiss gate, show login screen
+    const gate = document.getElementById('entryGate');
+    gate.style.transition = 'opacity .35s ease';
+    gate.style.opacity = '0';
+    setTimeout(()=>{
+      gate.style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+    }, 350);
+  } else {
+    // Wrong — shake the box and show error
+    err.style.display = 'block';
+    const box = document.querySelector('.eg-box');
+    box.classList.remove('eg-shake');
+    void box.offsetWidth; // reflow
+    box.classList.add('eg-shake');
+    input.value = '';
+    input.focus();
+  }
+}
+
+function toggleEgEye(){
+  const input = document.getElementById('egInput');
+  const btn   = document.getElementById('egEyeBtn');
+  if(input.type === 'password'){
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
 // ── INIT ─────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded',()=>{loadUsers();});
+window.addEventListener('DOMContentLoaded',()=>{
+  // Start loading users in background immediately (disguised loading)
+  loadUsers();
+  // Focus the password input
+  setTimeout(()=>{
+    const egInput = document.getElementById('egInput');
+    if(egInput) egInput.focus();
+  }, 80);
+});
 </script>
 <!-- ── DUPLICATE DISPATCH WARNING MODAL ─────────────────────── -->
 <div id="dupeWarnModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center">
