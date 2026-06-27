@@ -325,6 +325,22 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 
 @media(max-width:768px){.page{padding:16px 14px 40px;}.form-row{grid-template-columns:1fr 1fr;}.kpi-row{grid-template-columns:1fr 1fr;}.lot-grid{grid-template-columns:1fr 1fr;}.topbar-logo{font-size:15px;margin-right:16px;}.tab-btn span{display:none;}}
 @media(max-width:480px){.form-row{grid-template-columns:1fr;}.lot-grid{grid-template-columns:1fr;}}
+
+body.hide-lot-cols .col-lot,
+body.hide-lot-cols #in-lot-group,
+body.hide-lot-cols #out-lot-group,
+body.hide-lot-cols #em-lot-group,
+body.hide-lot-cols #ri-f-lot,
+body.hide-lot-cols #ro-f-lot,
+body.hide-lot-cols #sv-lot,
+body.hide-lot-cols #rpt-f-lot,
+body.hide-lot-cols #rpt-mov-f-lot,
+body.hide-lot-cols #rpt-in-f-lot,
+body.hide-lot-cols #rpt-out-f-lot,
+body.hide-lot-cols #rpt-hist-f-lot,
+body.hide-lot-cols .lot-element {
+  display: none !important;
+}
 </style>
 </head>
 <body>
@@ -349,6 +365,35 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       </div>
       <button class="eg-btn" onclick="checkEntryPassword()">Unlock →</button>
       <div class="eg-err" id="egErr">✕ Incorrect password. Please try again.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION SELECTION SCREEN ───────────────────────────── -->
+<div id="sectionScreen" style="display:none; min-height:100vh; align-items:center; justify-content:center; background:linear-gradient(135deg,#1c1917 0%,#292524 50%,#1c1917 100%); position:relative; overflow:hidden; width:100%;">
+  <div id="sectionScreenBg" style="position:absolute; inset:0; background:radial-gradient(ellipse 60% 60% at 30% 40%,rgba(217,119,6,0.15) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 80% 70%,rgba(217,119,6,0.08) 0%,transparent 60%); pointer-events:none;"></div>
+  <div class="ls-wrap" style="max-width:800px; width:100%; display:flex; flex-direction:column; align-items:center; gap:28px; position:relative; z-index:1; padding:24px 16px;">
+    <!-- Brand -->
+    <div class="ls-brand">
+      <div class="ls-brand-logo">🪵 Stock<span>ifly</span> </div>
+      <div class="ls-brand-company">Century Plyboards (India) Limited</div>
+      <div class="ls-brand-loc">Chennai</div>
+    </div>
+    
+    <div style="font-size:16px; font-weight:600; color:#fff; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Select Dashboard Section</div>
+
+    <!-- Two big section selection cards -->
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:24px; width:100%;">
+      <div class="ls-icon-btn" style="padding:40px 24px; display:flex; flex-direction:column; gap:16px; justify-content:center;" onclick="chooseSection('dispatch')">
+        <div class="ls-icon-emoji" style="font-size:48px;">📦</div>
+        <div class="ls-icon-label" style="font-size:16px;">Branded / Dispatch</div>
+        <div class="ls-icon-sub" style="font-size:12px; color:#a8a29e;"> 🚚Stock management for branded inventory</div>
+      </div>
+      <div class="ls-icon-btn" style="padding:40px 24px; display:flex; flex-direction:column; gap:16px; justify-content:center;" onclick="chooseSection('wip')">
+        <div class="ls-icon-emoji" style="font-size:48px;">🔧</div>
+        <div class="ls-icon-label" style="font-size:16px;">WIP MAT</div>
+        <div class="ls-icon-sub" style="font-size:12px; color:#a8a29e;"> ⛑️Stock management for WIP materials</div>
+      </div>
     </div>
   </div>
 </div>
@@ -387,7 +432,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
     </div>
 
     <!-- Quick Scan Button -->
-    <div style="margin-top:24px;text-align:center">
+    <div style="margin-top:24px;text-align:center" class="lot-element">
       <button class="btn btn-outline" style="width:100%;max-width:240px;border-color:var(--amber);color:var(--amber);background:rgba(217,119,6,0.05)" onclick="openQrScanner()">
         📷 Quick Scan Lot QR
       </button>
@@ -400,13 +445,21 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       <div id="ls-user-buttons" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
         <div style="color:#78716c;font-size:13px">⟳ Loading users…</div>
       </div>
+      <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 6px; border-color: rgba(255,255,255,0.2); color: #a8a29e; font-size: 13px; font-weight: 500;" onclick="backToSectionScreen()">
+          ← Change Section
+        </button>
+        <button class="btn btn-outline btn-amber" style="display: inline-flex; align-items: center; gap: 6px; border-color: var(--amber); color: var(--amber); font-size: 13px; font-weight: 500;" onclick="promptAddUser()">
+          ➕ Add User
+        </button>
+      </div>
     </div>
   </div>
 </div>
 
 <div id="app">
   <div class="topbar">
-    <div class="topbar-logo">Stock<span>ifly</span> </div>
+    <div class="topbar-logo">Stock<span>ifly</span> <span id="section-badge" style="font-size: 11px; margin-left: 8px; padding: 2px 8px; border-radius: 4px; background: var(--amber); color: #fff; vertical-align: middle; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; display: inline-block;"></span></div>
     <div class="topbar-tabs">
       <button class="tab-btn active" onclick="switchTab('input')"   id="tab-input">   📥 <span>INPUT</span></button>
       <button class="tab-btn"        onclick="switchTab('output')"  id="tab-output">  📤 <span>OUTPUT</span></button>
@@ -428,7 +481,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
         <div class="page-sub">Add plywood batches to inventory</div>
       </div>
       <div style="display:flex;gap:10px">
-        <button class="btn btn-outline btn-sm" onclick="openQrScanner()">📷 Scan Lot</button>
+        <button class="btn btn-outline btn-sm lot-element" onclick="openQrScanner()">📷 Scan Lot</button>
         <button class="btn btn-outline btn-sm" id="headerRefreshBtn" onclick="loadStockViewer()">
           <span id="headerRefreshTxt">⟳ Refresh Stock</span>
           <span id="headerRefreshSpinner" style="display:none;width:12px;height:12px;border:2px solid rgba(0,0,0,0.15);border-top-color:var(--amber);border-radius:50%;animation:spin 0.6s linear infinite"></span>
@@ -454,7 +507,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
             <input class="form-control mono" id="in-matcode" placeholder="Auto-generated or type code"
               onblur="onMatcodeInput()" onkeydown="if(event.key==='Enter')onMatcodeInput()" autocomplete="off">
           </div>
-          <div class="form-group"><label class="form-label">Lot / Stack No.</label><input class="form-control" id="in-lot" type="number" min="1" placeholder="e.g. 1"></div>
+          <div class="form-group" id="in-lot-group"><label class="form-label">Lot / Stack No.</label><input class="form-control" id="in-lot" type="number" min="1" placeholder="e.g. 1"></div>
           <div class="form-group"><label class="form-label">Pieces (PCS)</label><input class="form-control" id="in-pcs" type="number" min="1" placeholder="0" oninput="calcInputPreview()"></div>
         </div>
         <div id="inputPreview" style="display:none;margin-top:4px">
@@ -464,6 +517,12 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
             <div style="font-size:12px"><span class="mono num-amber" id="in-na">—</span> <span style="color:var(--muted)">m² NA</span></div>
             <div style="font-size:12px"><span class="mono" id="in-factor" style="color:var(--muted)">—</span> <span style="color:var(--muted)">Sqmtr/sheet</span></div>
           </div>
+        </div>
+        <div class="entry-ts-wrap">
+          <span class="entry-ts-label">📅 Entry timestamp:</span>
+          <input type="datetime-local" class="entry-ts-input" id="in-timestamp" oninput="updateInputTsBadge()">
+          <button class="entry-ts-now" onclick="resetInputTs()">↺ Use current time</button>
+          <span class="entry-ts-badge ts-now" id="in-ts-badge">● Now</span>
         </div>
         <div style="margin-top:16px;display:flex;gap:10px">
           <button class="btn btn-dark" onclick="addPendingRow()">+ Add to list</button>
@@ -480,7 +539,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       </div>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>#</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS</th><th>SQM</th><th>NA</th><th></th></tr></thead>
+          <thead><tr><th>#</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th class="col-lot">Lot</th><th>Thick</th><th>Size</th><th>PCS</th><th>SQM</th><th>NA</th><th></th></tr></thead>
           <tbody id="pendingTbody"></tbody>
         </table>
       </div>
@@ -520,7 +579,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS In</th><th>SQM</th><th>NA</th><th>User</th><th>Action</th></tr></thead>
+            <thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th class="col-lot">Lot</th><th>Thick</th><th>Size</th><th>PCS In</th><th>SQM</th><th>NA</th><th>User</th><th>Action</th></tr></thead>
             <tbody id="riTbody"><tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)">Select a time range and click Load</td></tr></tbody>
           </table>
         </div>
@@ -551,7 +610,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       <div id="svCollapsible">
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS Remaining</th><th>SQM Remaining</th><th>NA Remaining</th><th>Updated</th><th>User</th></tr></thead>
+            <thead><tr><th>SLOC</th><th>Brand</th><th>Material Code</th><th class="col-lot">Lot</th><th>Thick</th><th>Size</th><th>PCS Remaining</th><th>SQM Remaining</th><th>NA Remaining</th><th>Updated</th><th>User</th></tr></thead>
             <tbody id="svTbody"><tr><td colspan="11" style="text-align:center;padding:32px;color:var(--muted)">Loading stock…</td></tr></tbody>
           </table>
         </div>
@@ -586,7 +645,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
     <div class="page-header">
       <div><div class="page-title">Stock Output</div><div class="page-sub">Issue plywood from inventory (Move out)</div></div>
       <div style="display:flex;gap:10px">
-        <button class="btn btn-outline btn-sm" onclick="openQrScanner()">📷 Scan Lot</button>
+        <button class="btn btn-outline btn-sm lot-element" onclick="openQrScanner()">📷 Scan Lot</button>
         <button class="btn btn-outline btn-sm" id="refreshInvBtn" onclick="loadInventory()">
           <span id="refreshInvTxt">⟳ Refresh Inventory</span>
           <span id="refreshInvSpinner" style="display:none;vertical-align:middle"><span style="display:inline-block;width:11px;height:11px;border:2px solid rgba(0,0,0,0.15);border-top-color:var(--text);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:4px"></span>Loading…</span>
@@ -594,7 +653,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       </div>
     </div>
     <div class="kpi-row" id="outputKpiRow">
-      <div class="kpi-card blue"><div class="kpi-label">Total Lots</div><div class="kpi-val" id="kpi-lots">—</div><div class="kpi-sub">lots with stock</div></div>
+      <div class="kpi-card blue lot-element"><div class="kpi-label">Total Lots</div><div class="kpi-val" id="kpi-lots">—</div><div class="kpi-sub">lots with stock</div></div>
       <div class="kpi-card amber"><div class="kpi-label">Total PCS</div><div class="kpi-val" id="kpi-pcs">—</div><div class="kpi-sub">pieces in stock</div></div>
       <div class="kpi-card green"><div class="kpi-label">Total SQM</div><div class="kpi-val" id="kpi-sqm">—</div><div class="kpi-sub">sq. metres</div></div>
       <div class="kpi-card red"><div class="kpi-label">Below Min Stock</div><div class="kpi-val num-red" id="kpi-alerts">—</div><div class="kpi-sub">codes in alert</div></div>
@@ -612,7 +671,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 
 
 
-          <div class="form-group"><label class="form-label">Lot / Stack No.</label><input type="number" class="form-control" id="out-lot" placeholder="Lot #" oninput="filterOutput()"></div>
+          <div class="form-group" id="out-lot-group"><label class="form-label">Lot / Stack No.</label><input type="number" class="form-control" id="out-lot" placeholder="Lot #" oninput="filterOutput()"></div>
           <div class="form-group"><label class="form-label">Sort Order</label>
             <select class="form-control" id="out-sort" onchange="filterOutput()">
               <option value="fifo" selected>FIFO (Oldest first)</option>
@@ -639,6 +698,12 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
         <div style="background:var(--amber-lt);border:1px solid var(--amber-mid);border-radius:var(--r-md);padding:12px 16px;margin-bottom:16px;font-size:13px">
           <div class="mono" id="dispatch-code" style="font-weight:600;color:var(--amber)"></div>
           <div style="color:var(--text2);margin-top:2px" id="dispatch-info"></div>
+        </div>
+        <div class="entry-ts-wrap" style="margin-bottom:14px;border-radius:var(--r-md);border:1px solid var(--border);">
+          <span class="entry-ts-label">📅 Move-out timestamp:</span>
+          <input type="datetime-local" class="entry-ts-input" id="out-timestamp" oninput="updateOutTsBadge()">
+          <button class="entry-ts-now" onclick="resetOutTs()">↺ Use current time</button>
+          <span class="entry-ts-badge ts-now" id="out-ts-badge">● Now</span>
         </div>
         <div class="form-row" style="grid-template-columns:1fr 1fr 200px">
           <div class="form-group"><label class="form-label">PCS to issue</label><input class="form-control" id="dispatch-pcs" type="number" min="1" placeholder="0" oninput="calcDispatchPreview()"></div>
@@ -723,7 +788,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
         <button class="btn btn-outline btn-sm" onclick="setPreset('today')">Today</button>
         <button class="btn btn-outline btn-sm" onclick="setPreset('week')">This week</button>
         <button class="btn btn-outline btn-sm" onclick="setPreset('month')">This month</button>
-        <button class="btn btn-outline btn-sm" onclick="openQrScanner()">📷 Scan Lot</button>
+        <button class="btn btn-outline btn-sm lot-element" onclick="openQrScanner()">📷 Scan Lot</button>
         <button class="btn btn-amber btn-sm" id="rptLoadBtn" onclick="loadReports()">
           <span id="rptLoadTxt">Load</span>
           <span id="rptLoadSpinner" style="display:none;vertical-align:middle"><span style="display:inline-block;width:11px;height:11px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:4px"></span>Loading…</span>
@@ -744,6 +809,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       <button class="btn btn-outline btn-sm" onclick="showReportView('inputs')" id="rptBtnInputs">📥 Inputs</button>
       <button class="btn btn-outline btn-sm" onclick="showReportView('outputs')" id="rptBtnOutputs">📤 Outputs</button>
       <button class="btn btn-outline btn-sm" onclick="showReportView('history')" id="rptBtnHistory">📋 All Transactions</button>
+      <button class="btn btn-outline btn-sm" onclick="fixZeroSqmNa()" title="Scan all sheets and recompute any row where SQM or NA is 0 but pieces > 0" style="border-color:var(--amber);color:var(--amber);margin-left:8px">⚠️ Fix Zero SQM/NA</button>
     </div>
     <div id="rpt-summary" class="card">
       <div class="card-header">
@@ -753,16 +819,17 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <select class="form-control" id="rpt-f-size" style="width:auto;font-size:12px" onchange="applyReportFilters()"><option value="">All Sizes</option></select>
           <select class="form-control" id="rpt-f-thick" style="width:auto;font-size:12px" onchange="applyReportFilters()"><option value="">All Thickness</option></select>
 <input type="number" class="form-control" id="rpt-f-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="applyReportFilters()">
+<input type="text" class="form-control" id="rpt-f-matcode" style="width:120px;font-size:12px" placeholder="Material Code" oninput="applyReportFilters()">
           <button class="btn btn-outline btn-sm" onclick="clearReportFilters()">✕ Clear</button>
         </div>
       </div>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS Remaining</th><th>SQM Remaining</th><th>NA Remaining</th><th>User</th></tr></thead>
+          <thead><tr><th>SLOC</th><th>Brand</th><th>Material Code</th><th class="col-lot">Lot</th><th>Thick</th><th>Size</th><th>PCS Remaining</th><th>SQM Remaining</th><th>NA Remaining</th><th>User</th></tr></thead>
           <tbody id="rpt-summary-tbody"><tr class="empty-row"><td colspan="10">Load a date range above</td></tr></tbody>
           <tfoot id="rpt-summary-tfoot" style="display:none">
             <tr style="background:var(--surface2);border-top:2px solid var(--border)">
-              <td colspan="6" style="padding:10px 14px;font-weight:700;font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em">TOTAL</td>
+              <td colspan="6" class="tot-colspan-6" style="padding:10px 14px;font-weight:700;font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em">TOTAL</td>
               <td class="num num-green" id="rpt-total-pcs" style="padding:10px 14px;font-weight:700">—</td>
               <td class="mono num-green" id="rpt-total-sqm" style="padding:10px 14px;font-weight:700">—</td>
               <td class="mono num-amber" id="rpt-total-na" style="padding:10px 14px;font-weight:700">—</td>
@@ -771,24 +838,28 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           </tfoot>
         </table>
       </div>
-      <div class="card-body" id="chart-container"></div>
+      <div class="card-body analytics-grid" id="rpt-summary-analytics" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(360px, 1fr)); gap:20px; padding:0 20px 20px;"></div>
     </div>
     <div id="rpt-movements" class="card" style="display:none">
       <div class="card-header">
         <div class="card-title">🔄 Movement Record (Lot History)</div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <select class="form-control" id="rpt-mov-f-brand" style="width:auto;font-size:12px" onchange="applyMovementFilters()"><option value="">All Brands</option></select>
+          <select class="form-control" id="rpt-mov-f-size" style="width:auto;font-size:12px" onchange="applyMovementFilters()"><option value="">All Sizes</option></select>
+          <select class="form-control" id="rpt-mov-f-thick" style="width:auto;font-size:12px" onchange="applyMovementFilters()"><option value="">All Thickness</option></select>
 <input type="number" class="form-control" id="rpt-mov-f-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="applyMovementFilters()">
+<input type="text" class="form-control" id="rpt-mov-f-matcode" style="width:120px;font-size:12px" placeholder="Material Code" oninput="applyMovementFilters()">
           <button class="btn btn-outline btn-sm" onclick="clearMovementFilters()">✕ Clear</button>
         </div>
 </div>  <!-- closes rpt-summary card-header -->
       <div id="reconcileResultPanel" style="display:none;background:var(--blue-lt);border:1px solid var(--blue);border-radius:var(--r-md);padding:12px 16px;margin:0 20px 12px;max-height:200px;overflow-y:auto"></div>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Material Code</th><th>Lot No</th><th>Day Entered</th><th>Last Moved</th><th>Duration Since Last Moved</th></tr></thead>
+          <thead><tr><th>Material Code</th><th class="col-lot">Lot No</th><th>Day Entered</th><th>Last Moved</th><th>Duration Since Last Moved</th></tr></thead>
           <tbody id="rpt-movements-tbody"><tr class="empty-row"><td colspan="5">Click Load to fetch movement records</td></tr></tbody>
         </table>
       </div>
+      <div class="card-body analytics-grid" id="rpt-movements-analytics" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(360px, 1fr)); gap:20px; padding:0 20px 20px;"></div>
     </div>
     <div id="rpt-inputs" class="card" style="display:none">
       <div class="card-header">
@@ -803,13 +874,14 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
             <option value="brand-asc">A→Z Brand</option>
           </select>
 <input type="number" class="form-control" id="rpt-in-f-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="applyInputFilters()">
+<input type="text" class="form-control" id="rpt-in-f-matcode" style="width:120px;font-size:12px" placeholder="Material Code" oninput="applyInputFilters()">
           <button class="btn btn-outline btn-sm" onclick="clearInputFilters()">✕ Clear</button>
         </div>
       </div>
-      <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS In</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-inputs-tbody"><tr class="empty-row"><td colspan="11">Load a date range above</td></tr></tbody>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th class="col-lot">Lot</th><th>Thick</th><th>Size</th><th>PCS In</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-inputs-tbody"><tr class="empty-row"><td colspan="11">Load a date range above</td></tr></tbody>
         <tfoot id="rpt-inputs-tfoot" style="display:none">
           <tr style="background:var(--surface2);border-top:2px solid var(--border)">
-            <td colspan="7" style="padding:10px 14px;font-weight:700;font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em">TOTAL</td>
+            <td colspan="7" class="tot-colspan-7" style="padding:10px 14px;font-weight:700;font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em">TOTAL</td>
             <td class="num num-green" id="rpt-in-total-pcs" style="padding:10px 14px;font-weight:700">—</td>
             <td class="mono num-green" id="rpt-in-total-sqm" style="padding:10px 14px;font-weight:700">—</td>
             <td class="mono num-amber" id="rpt-in-total-na" style="padding:10px 14px;font-weight:700">—</td>
@@ -817,6 +889,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           </tr>
         </tfoot>
         </table></div>
+      <div class="card-body analytics-grid" id="rpt-inputs-analytics" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(360px, 1fr)); gap:20px; padding:0 20px 20px;"></div>
     </div>
     <div id="rpt-outputs" class="card" style="display:none">
       <div class="card-header">
@@ -831,13 +904,14 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
             <option value="brand-asc">A→Z Brand</option>
           </select>
 <input type="number" class="form-control" id="rpt-out-f-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="applyOutputFilters()">
+<input type="text" class="form-control" id="rpt-out-f-matcode" style="width:120px;font-size:12px" placeholder="Material Code" oninput="applyOutputFilters()">
           <button class="btn btn-outline btn-sm" onclick="clearOutputFilters()">✕ Clear</button>
         </div>
       </div>
-      <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS Out</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-outputs-tbody"><tr class="empty-row"><td colspan="11">Load a date range above</td></tr></tbody>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th class="col-lot">Lot</th><th>Thick</th><th>Size</th><th>PCS Out</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-outputs-tbody"><tr class="empty-row"><td colspan="11">Load a date range above</td></tr></tbody>
         <tfoot id="rpt-outputs-tfoot" style="display:none">
           <tr style="background:var(--surface2);border-top:2px solid var(--border)">
-            <td colspan="7" style="padding:10px 14px;font-weight:700;font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em">TOTAL</td>
+            <td colspan="7" class="tot-colspan-7" style="padding:10px 14px;font-weight:700;font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em">TOTAL</td>
             <td class="num num-red" id="rpt-out-total-pcs" style="padding:10px 14px;font-weight:700">—</td>
             <td class="mono num-red" id="rpt-out-total-sqm" style="padding:10px 14px;font-weight:700">—</td>
             <td class="mono num-red" id="rpt-out-total-na" style="padding:10px 14px;font-weight:700">—</td>
@@ -845,6 +919,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           </tr>
         </tfoot>
         </table></div>
+      <div class="card-body analytics-grid" id="rpt-outputs-analytics" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(360px, 1fr)); gap:20px; padding:0 20px 20px;"></div>
     </div>
     <div id="rpt-history" class="card" style="display:none">
       <div class="card-header">
@@ -861,10 +936,12 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
             <option value="pcs-desc">⬇ PCS</option><option value="brand-asc">A→Z Brand</option>
           </select>
 <input type="number" class="form-control" id="rpt-hist-f-lot" style="width:80px;font-size:12px" placeholder="Lot #" oninput="applyHistoryFilters()">
+<input type="text" class="form-control" id="rpt-hist-f-matcode" style="width:120px;font-size:12px" placeholder="Material Code" oninput="applyHistoryFilters()">
           <button class="btn btn-outline btn-sm" onclick="clearHistoryFilters()">✕ Clear</button>
         </div>
       </div>
-      <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>Type</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th>Lot</th><th>Thick</th><th>Size</th><th>PCS</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-history-tbody"><tr class="empty-row"><td colspan="12">Load a date range above</td></tr></tbody></table></div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Timestamp</th><th>Type</th><th>SLOC</th><th>Brand</th><th>Material Code</th><th class="col-lot">Lot</th><th>Thick</th><th>Size</th><th>PCS</th><th>SQM</th><th>NA</th><th>User</th></tr></thead><tbody id="rpt-history-tbody"><tr class="empty-row"><td colspan="12">Load a date range above</td></tr></tbody></table></div>
+      <div class="card-body analytics-grid" id="rpt-history-analytics" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(360px, 1fr)); gap:20px; padding:0 20px 20px;"></div>
     </div>
   </div>
 
@@ -922,7 +999,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div><label class="form-label">SLOC</label><select class="form-control" id="em-sloc"><option value="BRANDED">BRANDED</option><option value="UNBRANDED">UNBRANDED</option></select></div>
-      <div><label class="form-label">Lot / Stack No.</label><input class="form-control mono" id="em-lot" type="number" min="1"></div>
+      <div id="em-lot-group"><label class="form-label">Lot / Stack No.</label><input class="form-control mono" id="em-lot" type="number" min="1"></div>
       <div><label class="form-label">Brand</label><select class="form-control" id="em-brand" onchange="updateEditMaterialCode()"></select></div>
       <div><label class="form-label">Thickness (mm)</label><select class="form-control" id="em-thick" onchange="updateEditMaterialCode()"></select></div>
     </div>
@@ -979,9 +1056,247 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 <div id="toastContainer"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxazzeSwJb4Mzaclbxn4Zni7bnIi2g3uWP-BrnAgn5WmJR14celXlY2DapNj53QIdGNXA/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3TyQGOc5gX0AmlkJVxm1avZqyyfghAjefE_4sYqEWP1a0062V0o2qA5z1hDHaH1Pmhg/exec';
 
+let currentSection = 'dispatch';
+let summaryBarChart = null;
+let summaryPieChart = null;
+let summarySizeChart = null;
+let summaryThickChart = null;
+let movementsAgeChart = null;
+let inputsLineChart = null;
+let inputsPieChart = null;
+let inputsSizeChart = null;
+let inputsThickChart = null;
+let outputsLineChart = null;
+let outputsPieChart = null;
+let outputsSizeChart = null;
+let outputsThickChart = null;
+let historyCompareChart = null;
+let historyPieChart = null;
+let historySizeChart = null;
+let historyThickChart = null;
+
+// Convert size string 'NXM' → numeric 5-digit code (L×10 + W×10, padStart 5)
+// 8X4→08040, 6X3→06030, 7X4→07040, 8X3→08030
+function sizeToNumCode(sizeStr) {
+  const m = String(sizeStr||'').trim().toUpperCase().match(/^(\d+(?:\.\d+)?)X(\d+(?:\.\d+)?)$/);
+  if (!m) return null;
+  return (String(Math.round(Number(m[1])*10)) + String(Math.round(Number(m[2])*10))).padStart(5,'0');
+}
+
+// Normalize material code for display (convert old 8X4 style → 008040 in WIP mode)
+function getDisplayCode(code) {
+  if (currentSection !== 'wip') return String(code || '');
+  // Strip -MAT suffix for display, normalize size part
+  const base = String(code || '').replace(/-MAT$/i,'');
+  return base.replace(/0*([1-9]\d*)X([1-9]\d*)$/, function(_, L, W) {
+    return (String(Math.round(Number(L)*10)) + String(Math.round(Number(W)*10))).padStart(5,'0');
+  });
+}
+
+// Build the full WIP material code: INITIALS + THICK(2) + SIZE_NUM(5) + '-MAT'
+function buildWipMaterialCode(initials, thick, size) {
+  const init = String(initials||'').trim();
+  const tp   = thick ? String(Number(thick)||thick).padStart(2,'0') : '';
+  const szNum = sizeToNumCode(size);
+  if (!init || !tp || !szNum) return '';
+  return init + tp + szNum + '-MAT';
+}
+
+// Build dispatch/branded material code: INITIALS + THICK(2) + SIZE_LIT(5)
+function buildDispatchMaterialCode(initials, thick, size) {
+  const init = String(initials||'').trim();
+  const tp   = thick ? String(Number(thick)||thick).padStart(2,'0') : '';
+  const sp   = size  ? String(size).padStart(5,'0') : '';
+  if (!init || !tp || !sp) return '';
+  return init + tp + sp;
+}
+
+// Get palette colours for size/thickness bar charts
+const SIZE_PALETTE  = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#8b5cf6','#14b8a6','#f97316','#84cc16'];
+const THICK_PALETTE = ['#0ea5e9','#f59e0b','#10b981','#ef4444','#8b5cf6','#ec4899','#f97316','#a3e635'];
 let masterRows=[],stockRows=[],inventoryRows=[],filteredInv=[],selectedLot=null,pendingRows=[],summaryCache=null;
+
+function adjustColSpans() {
+  const isWip = currentSection === 'wip';
+  document.querySelectorAll('.tot-colspan-6').forEach(td => td.setAttribute('colspan', isWip ? 5 : 6));
+  document.querySelectorAll('.tot-colspan-7').forEach(td => td.setAttribute('colspan', isWip ? 6 : 7));
+}
+
+function chooseSection(section) {
+  currentSection = section;
+  document.body.classList.toggle('hide-lot-cols', section === 'wip');
+  document.getElementById('sectionScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  
+  // Update user label with active section
+  const whoLabel = document.querySelector('#ls-user-grid div:first-child');
+  if (whoLabel) {
+    whoLabel.textContent = `👤 Who are you? (${section === 'wip' ? 'WIP MAT' : 'Branded / Dispatch'})`;
+  }
+  
+  adjustColSpans();
+  loadUsers();
+}
+
+function backToSectionScreen() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('sectionScreen').style.display = 'flex';
+}
+
+function getColLetter(idx) {
+  if (idx === undefined || idx < 0) return '';
+  return String.fromCharCode(65 + idx);
+}
+
+/* ── Datetime picker helpers ───────────────────────────── */
+function toLocalIsoMinutes(date) {
+  const d = date || new Date();
+  const pad = n => String(n).padStart(2,'0');
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate())
+    + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
+function toGasTimestamp(datetimeLocalValue) {
+  if (!datetimeLocalValue) return null;
+  const [datePart, timePart] = datetimeLocalValue.split('T');
+  return datePart + ' ' + (timePart ? timePart + ':00' : '00:00:00');
+}
+
+function getCustomTs(inputId) {
+  const el = document.getElementById(inputId);
+  if (!el || !el.value) return null;
+  return toGasTimestamp(el.value);
+}
+
+function initTsPicker(inputId, badgeId) {
+  const el = document.getElementById(inputId);
+  if (el) el.value = toLocalIsoMinutes();
+  updateTsBadge(inputId, badgeId);
+}
+
+function updateTsBadge(inputId, badgeId) {
+  const el = document.getElementById(inputId);
+  const badge = document.getElementById(badgeId);
+  if (!el || !badge) return;
+  const now = toLocalIsoMinutes();
+  const isNow = !el.value || el.value === now;
+  if (isNow) {
+    badge.textContent = '● Now';
+    badge.className = 'entry-ts-badge ts-now';
+  } else {
+    const d = new Date(el.value);
+    const diff = Date.now() - d.getTime();
+    const hrs = Math.floor(diff / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const label = hrs > 0 ? hrs + 'h ' + mins + 'm ago' : mins + 'm ago';
+    badge.textContent = '⏪ ' + label;
+    badge.className = 'entry-ts-badge ts-past';
+  }
+}
+
+function resetInputTs() {
+  document.getElementById('in-timestamp').value = toLocalIsoMinutes();
+  updateTsBadge('in-timestamp', 'in-ts-badge');
+}
+
+function updateInputTsBadge() { updateTsBadge('in-timestamp', 'in-ts-badge'); }
+
+function resetOutTs() {
+  document.getElementById('out-timestamp').value = toLocalIsoMinutes();
+  updateTsBadge('out-timestamp', 'out-ts-badge');
+}
+
+function updateOutTsBadge() { updateTsBadge('out-timestamp', 'out-ts-badge'); }
+
+function getSizeCode(sz, isWip) {
+  if (!sz) return '';
+  if (!isWip) return sz;
+  const s = String(sz).trim().toUpperCase();
+  const m = s.match(/^(\d+)X(\d+)$/);
+  if (m) {
+    return m[1] + '0' + m[2] + '0';
+  }
+  return sz;
+}
+
+function decodeSizeCode(szStr) {
+  if (!szStr) return '';
+  const clean = String(szStr).trim().replace(/^0+/, '');
+  const m = clean.match(/^(\d+)0(\d+)0$/);
+  if (m) {
+    return m[1] + 'X' + m[2];
+  }
+  return szStr;
+}
+
+// Robustly get Sqmtr from master row regardless of column name casing (Sqmtr / SQMTR / sqmtr)
+function getRowSqmtr(mr) {
+  if (!mr) return 0;
+  const keys = Object.keys(mr);
+  const target = 'sqmtr';
+  for (let i = 0; i < keys.length; i++) {
+    if (keys[i].toLowerCase() === target) {
+      const v = Number(mr[keys[i]]);
+      if (v > 0) return v;
+    }
+  }
+  return 0;
+}
+
+// Compute sqmtr from size string like '8X4', '6X3', '8030', etc.
+function computeSqmtrFromSize(sizeStr) {
+  const s = String(sizeStr || '').trim().toUpperCase();
+  const mxm = s.match(/^(\d+(?:\.\d+)?)X(\d+(?:\.\d+)?)$/);
+  if (mxm) {
+    const LmMap = {8: 2.4384, 7: 2.1336, 6: 1.8288, 5: 1.524};
+    const WmMap = {4: 1.2192, 3: 0.9144, 2: 0.6096};
+    const Lft = Number(mxm[1]), Wft = Number(mxm[2]);
+    const Lm = LmMap[Lft] || (Lft * 0.3048);
+    const Wm = WmMap[Wft] || (Wft * 0.3048);
+    return Math.round(Lm * Wm * 1000000) / 1000000;
+  }
+  const sNum = Number(s);
+  if (sNum > 0) {
+    const sInt = Math.round(sNum);
+    const Lcode = Math.floor(sInt / 100);
+    const Wcode = sInt % 100;
+    const Lmap = {80: 2.44, 70: 2.14, 60: 1.84, 50: 1.54};
+    const Wmap = {40: 1.22, 30: 0.92};
+    if (Lmap[Lcode] && Wmap[Wcode]) return Math.round(Lmap[Lcode] * Wmap[Wcode] * 1000000) / 1000000;
+  }
+  return 0;
+}
+
+// Resolve sqmFac: try master row first, then compute from size string
+function resolveSqmFac(mr, sizeStr) {
+  const fromRow = getRowSqmtr(mr);
+  if (fromRow > 0) return fromRow;
+  return computeSqmtrFromSize(sizeStr);
+}
+
+function updateLotInputState() {
+  const lotEl = document.getElementById('in-lot');
+  const slocEl = document.getElementById('in-sloc');
+  if (currentSection === 'wip') {
+    if (lotEl) {
+      lotEl.value = '100';
+      lotEl.disabled = true;
+    }
+    if (slocEl) {
+      slocEl.value = 'WIP MAT';
+      slocEl.disabled = true;
+    }
+  } else {
+    if (lotEl) {
+      lotEl.disabled = false;
+    }
+    if (slocEl) {
+      slocEl.disabled = false;
+    }
+  }
+}
 let thresholdMap={},stockByCodeMap={},thresholdsReady=false;
 let currentReportView='summary';
 let currentUser='';
@@ -1198,7 +1513,7 @@ function fmtTs(ts){
 
 // ── API ──────────────────────────────────────────────────────
 async function api(action,payload={}){
-  const body=JSON.stringify({action,...payload});
+  const body=JSON.stringify({action,section:currentSection,...payload});
   let resp;
   try{resp=await fetch(SCRIPT_URL,{method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},body});}
   catch(e){throw new Error('Cannot reach server: '+e.message);}
@@ -1246,23 +1561,82 @@ function selectSection(name){
   });
 }
 
+let cachedUsers = { dispatch: null, wip: null };
+
+async function preloadAllUsers() {
+  try {
+    const [dispatchRes, wipRes] = await Promise.all([
+      api('getMasterUsers', { section: 'dispatch' }),
+      api('getMasterUsers', { section: 'wip' })
+    ]);
+    cachedUsers.dispatch = dispatchRes.users || [];
+    cachedUsers.wip = wipRes.users || [];
+    console.log('Preloaded users successfully.');
+  } catch (e) {
+    console.warn('Failed to preload users:', e.message);
+  }
+}
+
+function renderUserButtons(users) {
+  const container = document.getElementById('ls-user-buttons');
+  if (!container) return;
+  if(users.length === 0){
+    container.innerHTML = '<div style="color:#78716c;font-size:13px">⚠️ No users found in ' + (currentSection === 'wip' ? 'Mat Master Data' : 'MasterData') + '</div>';
+    return;
+  }
+  container.innerHTML = users.map(u=>`
+    <button onclick="enterApp('${u.replace(/'/g,"\\'")}')" style="padding:12px 20px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:12px;color:#e7e5e4;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;letter-spacing:0.02em"
+      onmouseover="this.style.background='rgba(217,119,6,.18)';this.style.borderColor='rgba(217,119,6,.7)'"
+      onmouseout="this.style.background='rgba(255,255,255,.08)';this.style.borderColor='rgba(255,255,255,.15)'">
+      👤 ${u}
+    </button>`).join('');
+}
+
+async function promptAddUser() {
+  const username = prompt("Enter the new user's name:");
+  if (!username) return;
+  const trimmed = username.trim();
+  if (trimmed === "") return;
+  
+  showToast("Registering user...", "info");
+  try {
+    const res = await api('addMasterUser', { username: trimmed });
+    if (res.error) {
+      showToast("Error adding user: " + res.error, "error");
+    } else {
+      showToast("✓ User registered successfully!", "success");
+      
+      // Update cache
+      if (cachedUsers[currentSection]) {
+        if (!cachedUsers[currentSection].includes(trimmed)) {
+          cachedUsers[currentSection].push(trimmed);
+          cachedUsers[currentSection].sort();
+        }
+      } else {
+        cachedUsers[currentSection] = [trimmed];
+      }
+      
+      // Re-render user buttons
+      renderUserButtons(cachedUsers[currentSection]);
+    }
+  } catch (e) {
+    showToast("Error adding user: " + e.message, "error");
+  }
+}
+
 async function loadUsers(){
   const container = document.getElementById('ls-user-buttons');
   if(!container) return;
+  if (cachedUsers[currentSection]) {
+    renderUserButtons(cachedUsers[currentSection]);
+    return;
+  }
+  container.innerHTML = '<div style="color:#78716c;font-size:13px;display:flex;align-items:center;gap:8px;justify-content:center;width:100%"><span style="display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.15);border-top-color:var(--amber);border-radius:50%;animation:spin 0.6s linear infinite"></span> Loading users…</div>';
   try{
     const result = await api('getMasterUsers');
     const users = result.users || [];
-    if(users.length === 0){
-      container.innerHTML = '<div style="color:#78716c;font-size:13px">⚠️ No users found in MasterData</div>';
-      return;
-    }
-    container.innerHTML = users.map(u=>`
-      <button onclick="enterApp('${u.replace(/'/g,"\\'")}')
-" style="padding:12px 20px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:12px;color:#e7e5e4;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;letter-spacing:0.02em"
-        onmouseover="this.style.background='rgba(217,119,6,.18)';this.style.borderColor='rgba(217,119,6,.7)'"
-        onmouseout="this.style.background='rgba(255,255,255,.08)';this.style.borderColor='rgba(255,255,255,.15)'">
-        👤 ${u}
-      </button>`).join('');
+    cachedUsers[currentSection] = users;
+    renderUserButtons(users);
   }catch(e){
     container.innerHTML = '<div style="color:#fca5a5;font-size:13px">❌ Failed to load users</div>';
     console.error('Failed to load users:', e);
@@ -1275,6 +1649,11 @@ async function enterApp(user){
   // Enter app immediately — show UI right away
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='block';
+  const badge = document.getElementById('section-badge');
+  if (badge) {
+    badge.textContent = currentSection === 'wip' ? 'WIP MAT' : 'Branded';
+    badge.style.background = currentSection === 'wip' ? '#ea580c' : 'var(--amber)';
+  }
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('rpt-from').value=today;
   document.getElementById('rpt-to').value=today;
@@ -1296,11 +1675,17 @@ async function enterApp(user){
 
     // Stock rows
     stockRows     = invData.rows||[];
+    if (currentSection === 'wip') {
+      stockRows = stockRows.filter(r=>String(r.LOT_NO).trim() === '100');
+    }
     inventoryRows = stockRows.filter(r=>Number(r.PIECES_REMAINING)>0);
 
     // Rebuild masterRows from column info so input dropdowns work
     const cols = masterData.columns||{};
-    const slocVals  = (cols.SLOC?.values||[]).filter(v=>v.value).map(v=>v.value);
+    let slocVals  = (cols.SLOC?.values||[]).filter(v=>v.value).map(v=>v.value);
+    if (slocVals.length === 0) {
+      slocVals = ['WIP MAT'];
+    }
     const brandVals = (cols.BRAND?.values||[]).filter(v=>v.value);
     const initials  = {};(cols.MATERIAL_CODE_INITIALS?.values||[]).forEach(v=>{initials[v.row]=v.value;});
     const thickVals = (cols.THICKNESS?.values||[]).filter(v=>v.value);
@@ -1317,9 +1702,11 @@ async function enterApp(user){
           slocVals.forEach(sl=>{
             const init = initials[b.row]||'';
             const tp   = String(Number(t.value)).padStart(2,'0');
-            const sp   = String(s.value).padStart(5,'0');
-            // init can be 4 chars (old) or 7 chars (new) — find by exact match
-            const mc   = matCodeVals.find(m=>m.value===init+tp+sp);
+            // WIP: look for INITIALS+THICK+SIZE_NUM+'-MAT'; fallback to legacy format
+            const szNum = sizeToNumCode ? sizeToNumCode(s.value) : null;
+            const wipCode = szNum ? (init+tp+szNum+'-MAT') : null;
+            const oldCode = init+tp+String(s.value).padStart(5,'0');
+            const mc   = matCodeVals.find(m=> m.value===wipCode || m.value===oldCode || m.value===(init+tp+String(s.value).padStart(6,'0')));
             masterRows.push({
               SLOC: sl,
               BRAND: b.value,
@@ -1341,6 +1728,8 @@ async function enterApp(user){
     showToast('Welcome '+user+'! Data loaded.','success');
     setTimeout(loadThresholds, 500);
     initRecentInputs(); initRecentOutputs(); loadEditPermissions();
+    updateLotInputState();
+    adjustColSpans();
   }catch(e){
     showToast('Data load failed — try refreshing stock manually.','error');
     console.error('enterApp data load failed:', e);
@@ -1357,7 +1746,8 @@ function applyTabVisibility(){
 }
 
 function doLogout(){
-  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('sectionScreen').style.display='flex';
+  document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='none';
   ['input','output','reports','master'].forEach(s=>{
     document.getElementById('ls-btn-'+s).classList.remove('active-btn');
@@ -1389,7 +1779,7 @@ function _doSwitchTab(name){
   document.getElementById('page-'+name).classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
   if(name==='output')  { loadInventory(); initRecentOutputs(); loadOutputEditLogs(); loadEditPermissions(); }
-  if(name==='input')   { loadInputEditLogs(); loadEditPermissions(); }
+  if(name==='input')   { loadInputEditLogs(); loadEditPermissions(); updateLotInputState(); }
   if(name==='reports') setPreset('month');
   if(name==='master')  loadMasterData();
 }
@@ -1423,15 +1813,16 @@ function alertLevel(materialCode){
 
 // ── INPUT DROPDOWNS ──────────────────────────────────────────
 function populateInputDropdowns(){
-  const slocs=[...new Set(masterRows.map(r=>String(r.SLOC||'').trim()).filter(Boolean))].sort();
+  let slocs=[...new Set(masterRows.map(r=>String(r.SLOC||'').trim()).filter(Boolean))].sort();
+  if(currentSection==='wip') slocs=['WIP MAT'];
   const brands=[...new Set(masterRows.map(r=>String(r.BRAND||'').trim()).filter(Boolean))].sort();
   const thicks=[...new Set(masterRows.map(r=>String(r.THICKNESS||'')).filter(v=>v!==''))].sort((a,b)=>+a-+b);
   const sizes=[...new Set(masterRows.map(r=>String(r.SIZE||'')).filter(v=>v!==''))].sort();
-  fillSelect('in-sloc',slocs,'— Select SLOC —');fillSelect('in-brand',brands,'— Select brand —');
+  fillSelect('in-sloc',slocs,'— Select SLOC —');fillSelect('in-brand',brands,'— Select brand —');initTsPicker('in-timestamp','in-ts-badge');initTsPicker('out-timestamp','out-ts-badge');
   fillSelect('in-thick',thicks,'— Thickness —');fillSelect('in-size',sizes,'— Size —');
   // Default SLOC to BRANDED
   const slocEl=document.getElementById('in-sloc');
-  if(slocEl&&!slocEl.value)slocEl.value='BRANDED';
+  if(slocEl&&!slocEl.value)slocEl.value=(currentSection==='wip'?'WIP MAT':'BRANDED');
   const svBrands=[...new Set(stockRows.map(r=>r.BRAND).filter(Boolean))].sort();
   const svSizes=[...new Set(stockRows.map(r=>String(r.SIZE||'')).filter(Boolean))].sort();
   const svThicks=[...new Set(stockRows.map(r=>String(r.THICKNESS||'')).filter(Boolean))].sort((a,b)=>+a-+b);
@@ -1464,45 +1855,61 @@ function onSizeChange(){updateMaterialCodePreview();}
 //   New: [7-char initials][2-digit thick][5-char size] = 14 chars  e.g. PPPCARA3008040
 // Detection: tries to match initials by scanning masterRows for longest prefix match.
 function onMatcodeInput(){
-  const typed=document.getElementById('in-matcode').value.trim().toUpperCase();
+  // Strip -MAT suffix before parsing
+  let rawInput = document.getElementById('in-matcode').value.trim().toUpperCase();
+  const hasMat = rawInput.endsWith('-MAT');
+  const typed  = hasMat ? rawInput.slice(0,-4) : rawInput;
   if(!typed){calcInputPreview();return;}
 
-  // Valid lengths: 11 (4+2+5) or 14 (7+2+5)
-  if(typed.length!==11&&typed.length!==14){
-    showToast('Material code must be 11 chars (e.g. PAAP3008040) or 14 chars (e.g. PPPCARA3008040)','error');
+  const isWip = currentSection === 'wip';
+  // WIP codes: INITIALS(4 or 7) + THICK(2) + SIZE_NUM(5) = 11 or 14 chars (before -MAT)
+  // Dispatch codes: INITIALS(4 or 7) + THICK(2) + SIZE(5) = 11 or 14 chars
+  const validLengths = [11, 14];
+  if(!validLengths.includes(typed.length)){
+    const ex = isWip
+      ? 'e.g. PPPCARA0908040-MAT or PPPCARA09008040-MAT'
+      : 'e.g. PPPCARA3008040 (14 chars)';
+    showToast('Material code length invalid — '+ex,'error');
     return;
   }
 
-  // --- Detect initials length by matching against masterRows ---
-  // Try 7-char initials first (longer match wins), then fall back to 4-char
-  let initials='', thickRaw='', sizeRaw='', brandRow=null;
-
+  let initials='', thickRaw='', sizeRaw='';
   if(typed.length===14){
-    // Must be 7-char initials
-    initials=typed.slice(0,7);
-    thickRaw=typed.slice(7,9);
-    sizeRaw=typed.slice(9);
-    brandRow=masterRows.find(r=>String(r.MATERIAL_CODE_INITIALS||'').trim().toUpperCase()===initials);
+    initials=typed.slice(0,7); thickRaw=typed.slice(7,9); sizeRaw=typed.slice(9);
   } else {
-    // 11-char: could still be 4-char initials — but try 7-char first in case
-    // user typed a short code where 7-char initials happen to be shorter
-    // For 11-char codes, initials must be 4 chars
-    initials=typed.slice(0,4);
-    thickRaw=typed.slice(4,6);
-    sizeRaw=typed.slice(6);
-    brandRow=masterRows.find(r=>String(r.MATERIAL_CODE_INITIALS||'').trim().toUpperCase()===initials);
+    initials=typed.slice(0,4); thickRaw=typed.slice(4,6); sizeRaw=typed.slice(6);
   }
 
-  const thickNum=String(Number(thickRaw));  // strip leading zero: "06"→"6", "30"→"30"
-
-  // Find thickness from any master row where THICKNESS matches
+  const brandRow=masterRows.find(r=>String(r.MATERIAL_CODE_INITIALS||'').trim().toUpperCase()===initials);
+  const thickNum=String(Number(thickRaw));
   const thickRow=masterRows.find(r=>String(r.THICKNESS||'').trim()===thickNum);
-  // Find size from any master row where SIZE matches (try padded and unpadded)
-  const sizeRow=masterRows.find(r=>String(r.SIZE||'').trim()===sizeRaw||String(r.SIZE||'').trim()===String(Number(sizeRaw)));
+
+  // Decode size: WIP numeric code e.g. '08040' → '8X4', dispatch literal e.g. '8X4' stays
+  let decodedSize = sizeRaw;
+  if(isWip){
+    // Try numeric → NXM decoding: '08040' → L=80/10=8, W=40/10=4 → '8X4'
+    const numMatch = sizeRaw.replace(/^0+/,'').match(/^(\d+)(\d{2})$/);
+    if(numMatch){
+      const L=Math.round(Number(numMatch[1])/10);
+      const W=Math.round(Number(numMatch[2])/10);
+      if(L>0&&W>0) decodedSize = L+'X'+W;
+    }
+    // Also try direct e.g. '8040' → L=80÷10=8, W=40÷10=4
+    const direct = String(parseInt(sizeRaw,10));
+    if(direct.length>=3){
+      const Ld=Number(direct.slice(0,-2)), Wd=Number(direct.slice(-2));
+      if(Ld>0&&Wd>0) decodedSize = Math.round(Ld/10)+'X'+Math.round(Wd/10);
+    }
+  }
+
+  const sizeRow=masterRows.find(r=>{
+    const rs=String(r.SIZE||'').trim().toUpperCase();
+    return rs===decodedSize.toUpperCase() || rs===sizeRaw || rs===String(Number(sizeRaw));
+  });
 
   if(!brandRow){showToast('Initials "'+initials+'" not found in master data','error');return;}
   if(!thickRow){showToast('Thickness "'+thickNum+'mm" not found in master data','error');return;}
-  if(!sizeRow){showToast('Size "'+sizeRaw+'" not found in master data','error');return;}
+  if(!sizeRow){showToast('Size "'+sizeRaw+'" / "'+decodedSize+'" not found in master data','error');return;}
 
   const brand=brandRow.BRAND||'';
   const thick=String(thickRow.THICKNESS||'');
@@ -1511,8 +1918,12 @@ function onMatcodeInput(){
   document.getElementById('in-brand').value=brand;
   document.getElementById('in-thick').value=thick;
   document.getElementById('in-size').value=size;
-  // Recompute canonical code from matched parts
-  document.getElementById('in-matcode').value=initials+thickRaw+sizeRow.SIZE.toString().padStart(5,'0');
+
+  const finalCode = isWip
+    ? buildWipMaterialCode(initials, thick, size)
+    : buildDispatchMaterialCode(initials, thick, size);
+  document.getElementById('in-matcode').value=finalCode;
+
   calcInputPreview();
   showToast('✓ Matched: '+brand+' · '+thick+'mm · '+size,'success');
 }
@@ -1529,11 +1940,13 @@ function updateMaterialCodePreview(){
   const row=masterRows.find(r=>r.BRAND===brand);
   const initials=row?String(row.MATERIAL_CODE_INITIALS||'').trim():'';
   if(!initials){document.getElementById('in-matcode').value='';calcInputPreview();return;}
-  // thick: always pad to 2 digits. size: always pad to 5 digits.
-  // initials can be 4 or 7 chars — use as-is, no padding needed.
-  const thickPad=thick?String(Number(thick)).padStart(2,'0'):'';
-  const sizePad=size?String(size).padStart(5,'0'):'';
-  document.getElementById('in-matcode').value=initials+thickPad+sizePad;
+
+  const isWip = currentSection === 'wip';
+  const code = isWip
+    ? buildWipMaterialCode(initials, thick, size)
+    : buildDispatchMaterialCode(initials, thick, size);
+
+  document.getElementById('in-matcode').value=code;
   calcInputPreview();
 }
 
@@ -1545,7 +1958,7 @@ function calcInputPreview(){
   const prev=document.getElementById('inputPreview');
   if(!brand||!thick||!size||pcs<=0){prev.style.display='none';return;}
   const mr=findMasterRow(brand,thick,size)||findMasterRow(null,null,size);
-  const sqmFac=mr?Number(mr.Sqmtr||0):0;
+  const sqmFac=resolveSqmFac(mr, size);
   const sqm=Math.round(pcs*sqmFac*10000)/10000;
   const na=Math.round(pcs*sqmFac*(Number(thick)/4)*10000)/10000;
   document.getElementById('in-sqm').textContent=sqm.toFixed(4);
@@ -1565,8 +1978,13 @@ function addPendingRow(){
   const mr=findMasterRow(brand,thick,size)||findMasterRow(null,null,size);
   const codeRow=findMasterRow(brand,thick,size)||findMasterRow(brand,null,null);
   let code=document.getElementById('in-matcode').value.trim();
-  if(codeRow){const init=String(codeRow.MATERIAL_CODE_INITIALS||'').trim();code=init+String(Number(thick)).padStart(2,'0')+String(size).padStart(5,'0');}
-  const sqmFac=mr?Number(mr.Sqmtr||0):0;
+  if(codeRow){
+    const init=String(codeRow.MATERIAL_CODE_INITIALS||'').trim();
+    code = currentSection==='wip'
+      ? buildWipMaterialCode(init, thick, size)
+      : buildDispatchMaterialCode(init, thick, size);
+  }
+  const sqmFac=resolveSqmFac(mr, size);
   const sqm=Math.round(pcs*sqmFac*10000)/10000;
   const na=Math.round(pcs*sqmFac*(Number(thick)/4)*10000)/10000;
   // ── Duplicate check ──────────────────────────────────────────
@@ -1588,7 +2006,8 @@ function addPendingRow(){
     if(!confirm(msg))return;
   }
   // ─────────────────────────────────────────────────────────────
-  pendingRows.push({SLOC:sloc,BRAND:brand,THICKNESS:Number(thick),SIZE:size,MATERIAL_CODE:code,LOT_NO:lot,PIECES_IN:pcs,SQM:sqm,NA:na,SQM_FACTOR:sqmFac});
+  const inCts = getCustomTs('in-timestamp');
+  pendingRows.push({SLOC:sloc,BRAND:brand,THICKNESS:Number(thick),SIZE:size,MATERIAL_CODE:code,LOT_NO:lot,PIECES_IN:pcs,SQM:sqm,NA:na,SQM_FACTOR:sqmFac, CUSTOM_TIMESTAMP:inCts||undefined});
   renderPending();clearInputForm(false);
   // Carry forward lot number for next entry (same lot, different brand/size is common)
   document.getElementById('in-lot').value=lot;
@@ -1610,7 +2029,7 @@ function renderPending(){
       <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC}</span></td>
       <td style="font-weight:500">${brandCell(r.BRAND)}</td>
       <td><span class="badge badge-code">${r.MATERIAL_CODE}</span></td>
-      <td class="mono">${r.LOT_NO}</td><td class="mono">${r.THICKNESS}mm</td><td class="mono">${r.SIZE}</td>
+      <td class="mono col-lot">${r.LOT_NO}</td><td class="mono">${r.THICKNESS}mm</td><td class="mono">${r.SIZE}</td>
       <td class="num">${r.PIECES_IN}</td>
       <td class="mono" style="color:var(--green)">${r.SQM.toFixed(2)}</td>
       <td class="mono" style="color:var(--amber)">${r.NA.toFixed(2)}</td>
@@ -1621,15 +2040,17 @@ function renderPending(){
 function removePending(i){pendingRows.splice(i,1);renderPending();}
 function clearPending(){pendingRows=[];renderPending();}
 function clearInputForm(clearDropdowns=true){
-  document.getElementById('in-lot').value='';document.getElementById('in-pcs').value='';
+  document.getElementById('in-pcs').value='';
   document.getElementById('inputPreview').style.display='none';
+  resetInputTs();
   if(clearDropdowns){
     ['in-brand','in-thick','in-size'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('in-matcode').value='';
-    // Default SLOC to BRANDED
     const slocEl=document.getElementById('in-sloc');
-    if(slocEl)slocEl.value='BRANDED';
+    if(slocEl)slocEl.value=(currentSection==='wip'?'WIP MAT':'BRANDED');
   }
+  document.getElementById('in-lot').value=(currentSection==='wip'?'100':'');
+  updateLotInputState();
 }
 
 async function addAndSaveNow(){
@@ -1640,7 +2061,12 @@ async function addAndSaveNow(){
   // ── Duplicate check ──────────────────────────────────────────
   const codeRow=findMasterRow(brand,thick,size)||findMasterRow(brand,null,null);
   let code=document.getElementById('in-matcode').value.trim();
-  if(codeRow){const init=String(codeRow.MATERIAL_CODE_INITIALS||'').trim();code=init+String(Number(thick)).padStart(2,'0')+String(size).padStart(5,'0');}
+  if(codeRow){
+    const init=String(codeRow.MATERIAL_CODE_INITIALS||'').trim();
+    code = currentSection==='wip'
+      ? buildWipMaterialCode(init, thick, size)
+      : buildDispatchMaterialCode(init, thick, size);
+  }
   const dupInStock=stockRows.find(r=>
     String(r.MATERIAL_CODE||'').trim()===String(code).trim()&&
     String(r.LOT_NO||'').trim()===String(lot).trim()&&
@@ -1752,7 +2178,7 @@ function renderStockViewer(){
       <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td>
       <td>${brandCell(r.BRAND)}</td>
       <td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span>${alertPill}</td>
-      <td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
+      <td class="mono col-lot">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
       <td><span class="num ${pcsCol}">${pcs}</span></td>
       <td class="mono num-green">${sqm.toFixed(4)}</td><td class="mono num-amber">${na.toFixed(4)}</td>
       <td class="mono" style="color:var(--muted);font-size:11px">${r.Timestamp||'—'}</td>
@@ -1873,7 +2299,8 @@ function selectLot(i){
   selectedLot=filteredInv[i];if(Number(selectedLot.PIECES_REMAINING)===0)return;
   renderLots();const card=document.getElementById('dispatchCard');card.style.display='block';
   document.getElementById('dispatch-code').textContent=selectedLot.MATERIAL_CODE;
-  document.getElementById('dispatch-info').textContent=selectedLot.BRAND+' · Lot '+selectedLot.LOT_NO+' · '+selectedLot.THICKNESS+'mm · '+selectedLot.SIZE;
+  const lotText = currentSection === 'wip' ? '' : ' · Lot ' + selectedLot.LOT_NO;
+  document.getElementById('dispatch-info').textContent=selectedLot.BRAND+lotText+' · '+selectedLot.THICKNESS+'mm · '+selectedLot.SIZE;
   document.getElementById('dispatch-avail').value=Number(selectedLot.PIECES_REMAINING)+' pcs';
   document.getElementById('dispatch-pcs').value='';document.getElementById('dispatchBtn').disabled=true;
   document.getElementById('dispatchPreview').style.display='none';
@@ -1886,7 +2313,7 @@ function calcDispatchPreview(){
   const btn=document.getElementById('dispatchBtn');const prev=document.getElementById('dispatchPreview');
   if(!selectedLot||pcs<=0||pcs>avail){btn.disabled=true;prev.style.display='none';if(pcs>avail)showToast('Max available: '+avail+' pcs','error');return;}
   const mr=masterRows.find(r=>String(r.MATERIAL_CODE||'').trim()===String(selectedLot.MATERIAL_CODE||'').trim());
-  const sqmFac=mr?Number(mr.Sqmtr||0):Number(selectedLot.SQM_REMAINING||0)/avail;
+  const sqmFac=resolveSqmFac(mr, selectedLot.SIZE) || (Number(selectedLot.SQM_REMAINING||0)/avail);
   const thick=Number(selectedLot.THICKNESS||0);
   const sqmOut=Math.round(pcs*sqmFac*10000)/10000;const naOut=Math.round(pcs*sqmFac*(thick/4)*10000)/10000;
   const sqmRem=Math.round((Number(selectedLot.SQM_REMAINING||0)-sqmOut)*10000)/10000;
@@ -1919,7 +2346,10 @@ async function loadTodayOutputs() {
   try {
     const today = _todayStr();
     const data = await api('getSummary', { from: today, to: today });
-    const outputs = data.outputs || [];
+    let outputs = data.outputs || [];
+    if (currentSection === 'wip') {
+      outputs = outputs.filter(r=>String(r.LOT_NO).trim() === '100');
+    }
     todayOutputsCache = outputs.map(r => ({
       key: [String(r.MATERIAL_CODE||'').trim(), String(r.LOT_NO||'').trim(), Number(r.PCS_OUT||0)].join('|'),
       materialCode: String(r.MATERIAL_CODE||'').trim(),
@@ -1985,7 +2415,8 @@ async function confirmDispatch(bypassDupeCheck) {
   if (lotsGrid) lotsGrid.classList.add('lots-updating');
 
   try{
-    const result=await api('saveOutput',{row:{SLOC:selectedLot.SLOC,BRAND:selectedLot.BRAND,MATERIAL_CODE:selectedLot.MATERIAL_CODE,LOT_NO:selectedLot.LOT_NO,THICKNESS:selectedLot.THICKNESS,SIZE:selectedLot.SIZE,PCS_OUT:pcs},user:currentUser});
+    const outCts = getCustomTs('out-timestamp');
+    const result=await api('saveOutput',{row:{SLOC:selectedLot.SLOC,BRAND:selectedLot.BRAND,MATERIAL_CODE:selectedLot.MATERIAL_CODE,LOT_NO:selectedLot.LOT_NO,THICKNESS:selectedLot.THICKNESS,SIZE:selectedLot.SIZE,PCS_OUT:pcs,CUSTOM_TIMESTAMP:outCts||undefined},user:currentUser});
 
     showToast('Moved out '+pcs+' pcs. Remaining: '+result.remaining,'success');
     document.getElementById('dispatchCard').style.display='none';selectedLot=null;
@@ -2016,81 +2447,418 @@ function setPreset(preset){
 }
 
 let stockChartInstance = null;
-async function renderStockChart(data) {
-  const chartContainer = document.getElementById('chart-container');
-  if (!chartContainer) return;
-  
-  chartContainer.innerHTML = ''; // Clear previous chart
-  const canvas = document.createElement('canvas');
-  chartContainer.appendChild(canvas);
+function parseDurationToDays(durStr) {
+  if (!durStr) return 0;
+  const s = String(durStr).trim().toLowerCase();
+  const mDay = s.match(/^(\d+)\s+day/);
+  if (mDay) return parseInt(mDay[1], 10);
+  const mHr = s.match(/^(\d+)\s+hour/);
+  if (mHr) return parseInt(mHr[1], 10) / 24;
+  return 0;
+}
 
-  const ctx = canvas.getContext('2d');
+function renderAllReportAnalytics() {
+  if (!summaryCache) return;
+  renderStockSummaryCharts(summaryCache.stock || []);
+  renderMovementCharts(reportMovementsCache || []);
+  renderInputCharts(reportInputsCache || []);
+  renderOutputCharts(reportOutputsCache || []);
+  renderHistoryCharts(reportHistoryCache || []);
+}
 
-  // Filter out zero pieces just in case
-  const filteredData = data.filter(d => Number(d.PIECES_REMAINING) > 0);
+function renderStockSummaryCharts(stockRows) {
+  const container = document.getElementById('rpt-summary-analytics');
+  if (!container) return;
+
+  const filteredData = stockRows.filter(d => Number(d.PIECES_REMAINING) > 0);
   if (filteredData.length === 0) {
-    chartContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted)">No stock data for chart</div>';
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--muted);grid-column:1/-1">No stock data for charts</div>';
     return;
   }
 
-  const lots = [...new Set(filteredData.map(item => String(item.LOT_NO)))].sort((a,b) => Number(a) - Number(b));
-  const brands = [...new Set(filteredData.map(item => item.BRAND))].sort();
+  container.innerHTML = `
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📦 Stock by ${currentSection==='wip'?'Material Code':'Lot'}</div>
+      <div style="height:280px;position:relative"><canvas id="summary-bar-canvas"></canvas></div>
+    </div>
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">🍩 Brand Distribution (SQM)</div>
+      <div style="height:280px;position:relative"><canvas id="summary-pie-canvas"></canvas></div>
+    </div>
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📐 Size-wise Stock (Pieces)</div>
+      <div style="height:280px;position:relative"><canvas id="summary-size-canvas"></canvas></div>
+    </div>
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📏 Thickness-wise Stock (Pieces)</div>
+      <div style="height:280px;position:relative"><canvas id="summary-thick-canvas"></canvas></div>
+    </div>
+  `;
 
-  const datasets = brands.map(brand => {
-    const color = brandColorMap[brand] || '#ccc';
-    return {
-      label: brand,
-      data: lots.map(lot => {
-        const item = filteredData.find(d => String(d.LOT_NO) === lot && d.BRAND === brand);
-        return item ? Number(item.PIECES_REMAINING) : 0;
-      }),
-      backgroundColor: color,
-      borderColor: 'rgba(0,0,0,0.1)',
-      borderWidth: 1
-    };
+  const isWip = currentSection === 'wip';
+  const groups = isWip
+    ? [...new Set(filteredData.map(d => String(d.MATERIAL_CODE)))].sort()
+    : [...new Set(filteredData.map(d => String(d.LOT_NO)))].sort((a,b) => Number(a)-Number(b));
+  const brands = [...new Set(filteredData.map(d => d.BRAND))].sort();
+
+  // ── Bar chart (by material code / lot) ───────────────────
+  const datasets = brands.map(brand => ({
+    label: brand,
+    data: groups.map(g => {
+      const item = isWip
+        ? filteredData.find(d => String(d.MATERIAL_CODE)===g && d.BRAND===brand)
+        : filteredData.find(d => String(d.LOT_NO)===g && d.BRAND===brand);
+      return item ? Number(item.PIECES_REMAINING) : 0;
+    }),
+    backgroundColor: brandColorMap[brand] || '#ccc',
+    borderWidth: 1
+  }));
+  if (summaryBarChart) summaryBarChart.destroy();
+  summaryBarChart = new Chart(document.getElementById('summary-bar-canvas').getContext('2d'), {
+    type: 'bar',
+    data: { labels: groups.map(g => isWip ? getDisplayCode(g) : 'Lot '+g), datasets },
+    options: { responsive:true, maintainAspectRatio:false,
+      scales:{ x:{stacked:true, ticks:{maxRotation:45,font:{size:9}}}, y:{stacked:true,beginAtZero:true} },
+      plugins:{ legend:{position:'top',labels:{boxWidth:10,font:{size:10}}} } }
   });
 
-  if (stockChartInstance) {
-    stockChartInstance.destroy();
+  // ── Brand doughnut (SQM) ─────────────────────────────────
+  const brandSqmMap = {};
+  filteredData.forEach(d => { const b=d.BRAND||'Unknown'; brandSqmMap[b]=(brandSqmMap[b]||0)+Number(d.SQM_REMAINING||0); });
+  const pieLabels = Object.keys(brandSqmMap).sort();
+  if (summaryPieChart) summaryPieChart.destroy();
+  summaryPieChart = new Chart(document.getElementById('summary-pie-canvas').getContext('2d'), {
+    type: 'doughnut',
+    data: { labels: pieLabels, datasets:[{ data:pieLabels.map(b=>Math.round(brandSqmMap[b]*100)/100), backgroundColor:pieLabels.map(b=>brandColorMap[b]||'#999'), borderWidth:1 }] },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'right',labels:{boxWidth:10,font:{size:10}}},
+        tooltip:{ callbacks:{ label:c=>' '+c.label+': '+c.raw.toFixed(2)+' m²' } } } }
+  });
+
+  // ── Size-wise bar (Stacked by Brand) ─────────────────────────────────────────
+  const sizeLabels = [...new Set(filteredData.map(d=>String(d.SIZE||'?')))].sort();
+  const sizeDatasets = brands.map(brand => ({
+    label: brand,
+    data: sizeLabels.map(s => {
+      let sum = 0;
+      filteredData.forEach(d => { if(d.BRAND===brand && String(d.SIZE||'?')===s) sum+=Number(d.PIECES_REMAINING||0); });
+      return sum;
+    }),
+    backgroundColor: brandColorMap[brand] || '#ccc',
+    borderWidth: 1
+  }));
+  if (summarySizeChart) summarySizeChart.destroy();
+  summarySizeChart = new Chart(document.getElementById('summary-size-canvas').getContext('2d'), {
+    type: 'bar',
+    data: { labels: sizeLabels, datasets: sizeDatasets },
+    options: { responsive:true, maintainAspectRatio:false, indexAxis:'y',
+      scales:{ x:{stacked:true, beginAtZero:true}, y:{stacked:true} }, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+c.raw}} } }
+  });
+
+  // ── Thickness-wise bar (Stacked by Brand) ────────────────────────────────────
+  const thickLabels = [...new Set(filteredData.map(d=>String(d.THICKNESS||'?')+'mm'))].sort((a,b)=>parseInt(a)-parseInt(b));
+  const thickDatasets = brands.map(brand => ({
+    label: brand,
+    data: thickLabels.map(t => {
+      let sum = 0;
+      filteredData.forEach(d => { if(d.BRAND===brand && (String(d.THICKNESS||'?')+'mm')===t) sum+=Number(d.PIECES_REMAINING||0); });
+      return sum;
+    }),
+    backgroundColor: brandColorMap[brand] || '#ccc',
+    borderWidth: 1
+  }));
+  if (summaryThickChart) summaryThickChart.destroy();
+  summaryThickChart = new Chart(document.getElementById('summary-thick-canvas').getContext('2d'), {
+    type: 'bar',
+    data: { labels: thickLabels, datasets: thickDatasets },
+    options: { responsive:true, maintainAspectRatio:false,
+      scales:{ x:{stacked:true}, y:{stacked:true, beginAtZero:true} }, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+c.raw}} } }
+  });
+}
+
+function renderMovementCharts(moveRows) {
+  const container = document.getElementById('rpt-movements-analytics');
+  if (!container) return;
+  
+  if (moveRows.length === 0) {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:120px;color:var(--muted);grid-column:1/-1">No slow-moving data</div>';
+    return;
   }
 
-  stockChartInstance = new Chart(ctx, {
+  // Process top 10 slowest moving items
+  const processed = moveRows.map(r => {
+    const days = parseDurationToDays(r.DURATION_FROM_LAST_MOVED);
+    const label = currentSection === 'wip'
+      ? r.MATERIAL_CODE
+      : `${r.MATERIAL_CODE} (Lot ${r.LOT_NO})`;
+    return { label, days, brand: r.BRAND };
+  }).sort((a, b) => b.days - a.days).slice(0, 10);
+
+  if (processed.every(p => p.days === 0)) {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:120px;color:var(--muted);grid-column:1/-1">No slow-moving stock (all items active within today)</div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="card" style="padding:15px; background:var(--surface); grid-column: 1 / -1">
+      <div style="font-size:12px; font-weight:600; color:var(--text2); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.05em">⚠️ Slow-Moving Stock (Days Since Last Activity - Top 10)</div>
+      <div style="height:280px; position:relative;"><canvas id="movements-bar-canvas"></canvas></div>
+    </div>
+  `;
+
+  const ctxAge = document.getElementById('movements-bar-canvas').getContext('2d');
+  if (movementsAgeChart) movementsAgeChart.destroy();
+  movementsAgeChart = new Chart(ctxAge, {
     type: 'bar',
     data: {
-      labels: lots.map(l => 'Lot ' + l),
-      datasets: datasets,
+      labels: processed.map(p => p.label),
+      datasets: [{
+        label: 'Days Since Last Moved',
+        data: processed.map(p => Math.round(p.days * 10) / 10),
+        backgroundColor: processed.map(p => brandColorMap[p.brand] || '#ea580c'),
+        borderWidth: 1
+      }]
     },
     options: {
+      indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: {
-          stacked: true,
-          title: { display: true, text: 'Lot Number' }
-        },
-        y: {
-          stacked: true,
-          beginAtZero: true,
-          title: { display: true, text: 'Pieces Remaining' }
-        },
+        x: { beginAtZero: true, title: { display: true, text: 'Days' } }
       },
       plugins: {
-        legend: {
-          position: 'top',
-        },
-        tooltip: {
-          mode: 'index',
-          intersect: false,
-          callbacks: {
-  label: function(context) {
-    if (!context.parsed.y || context.parsed.y === 0) return null;
-    return (context.dataset.label || '') + ': ' + context.parsed.y + ' pcs';
-  }
-}
-        }
+        legend: { display: false }
       }
     }
   });
+}
+
+function renderInputCharts(inputRows) {
+  const container = document.getElementById('rpt-inputs-analytics');
+  if (!container) return;
+  if (inputRows.length === 0) {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--muted);grid-column:1/-1">No inputs matching filters</div>';
+    return;
+  }
+  container.innerHTML = `
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📈 Daily Input Trend (Pieces)</div>
+      <div style="height:260px;position:relative"><canvas id="inputs-line-canvas"></canvas></div>
+    </div>
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">🍩 Inputs by Brand (Pieces)</div>
+      <div style="height:260px;position:relative"><canvas id="inputs-pie-canvas"></canvas></div>
+    </div>
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📐 Size-wise Inputs (Pieces)</div>
+      <div style="height:260px;position:relative"><canvas id="inputs-size-canvas"></canvas></div>
+    </div>
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📏 Thickness-wise Inputs (Pieces)</div>
+      <div style="height:260px;position:relative"><canvas id="inputs-thick-canvas"></canvas></div>
+    </div>
+  `;
+  // Daily trend
+  const datePcsMap = {};
+  inputRows.forEach(r => { const d=String(r.Timestamp||'').split(' ')[0]; if(d&&d!='Unknown') datePcsMap[d]=(datePcsMap[d]||0)+Number(r.PIECES_IN||0); });
+  const trendLabels = Object.keys(datePcsMap).sort();
+  if (inputsLineChart) inputsLineChart.destroy();
+  inputsLineChart = new Chart(document.getElementById('inputs-line-canvas').getContext('2d'), {
+    type:'line', data:{ labels:trendLabels, datasets:[{ label:'Pieces In', data:trendLabels.map(d=>datePcsMap[d]),
+      borderColor:'#10b981', backgroundColor:'rgba(16,185,129,.06)', fill:true, tension:.15, borderWidth:2 }] },
+    options:{ responsive:true, maintainAspectRatio:false, scales:{ x:{grid:{display:false}}, y:{beginAtZero:true} } }
+  });
+  // Brand doughnut
+  const brandMap = {};
+  inputRows.forEach(r => { const b=r.BRAND||'Unknown'; brandMap[b]=(brandMap[b]||0)+Number(r.PIECES_IN||0); });
+  const pLabels = Object.keys(brandMap).sort();
+  if (inputsPieChart) inputsPieChart.destroy();
+  inputsPieChart = new Chart(document.getElementById('inputs-pie-canvas').getContext('2d'), {
+    type:'doughnut', data:{ labels:pLabels, datasets:[{ data:pLabels.map(b=>brandMap[b]),
+      backgroundColor:pLabels.map(b=>brandColorMap[b]||'#999'), borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'right',labels:{boxWidth:10,font:{size:10}}} } }
+  });
+  // Size-wise (Stacked by Brand)
+  const brands = [...new Set(inputRows.map(d=>d.BRAND||'Unknown'))].sort();
+  const sLabels = [...new Set(inputRows.map(d=>String(d.SIZE||'?')))].sort();
+  const sDatasets = brands.map(brand => ({
+    label: brand,
+    data: sLabels.map(s => {
+      let sum = 0;
+      inputRows.forEach(d => { if((d.BRAND||'Unknown')===brand && String(d.SIZE||'?')===s) sum+=Number(d.PIECES_IN||0); });
+      return sum;
+    }),
+    backgroundColor: brandColorMap[brand] || '#ccc',
+    borderWidth: 1
+  }));
+  if (inputsSizeChart) inputsSizeChart.destroy();
+  inputsSizeChart = new Chart(document.getElementById('inputs-size-canvas').getContext('2d'), {
+    type:'bar', data:{ labels:sLabels, datasets: sDatasets },
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y', scales:{ x:{stacked:true, beginAtZero:true}, y:{stacked:true} }, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+c.raw}}} }
+  });
+  
+  // Thickness-wise (Stacked by Brand)
+  const tLabels = [...new Set(inputRows.map(d=>String(d.THICKNESS||'?')+'mm'))].sort((a,b)=>parseInt(a)-parseInt(b));
+  const tDatasets = brands.map(brand => ({
+    label: brand,
+    data: tLabels.map(t => {
+      let sum = 0;
+      inputRows.forEach(d => { if((d.BRAND||'Unknown')===brand && (String(d.THICKNESS||'?')+'mm')===t) sum+=Number(d.PIECES_IN||0); });
+      return sum;
+    }),
+    backgroundColor: brandColorMap[brand] || '#ccc',
+    borderWidth: 1
+  }));
+  if (inputsThickChart) inputsThickChart.destroy();
+  inputsThickChart = new Chart(document.getElementById('inputs-thick-canvas').getContext('2d'), {
+    type:'bar', data:{ labels:tLabels, datasets: tDatasets },
+    options:{ responsive:true, maintainAspectRatio:false, scales:{ x:{stacked:true}, y:{stacked:true, beginAtZero:true} }, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+c.raw}}} }
+  });
+}
+
+function renderOutputCharts(outputRows) {
+  const container = document.getElementById('rpt-outputs-analytics');
+  if (!container) return;
+  if (outputRows.length === 0) {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--muted);grid-column:1/-1">No outputs matching filters</div>';
+    return;
+  }
+  container.innerHTML = `
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📈 Daily Output Trend (Pieces)</div>
+      <div style="height:260px;position:relative"><canvas id="outputs-line-canvas"></canvas></div>
+    </div>
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">🍩 Outputs by Brand (Pieces)</div>
+      <div style="height:260px;position:relative"><canvas id="outputs-pie-canvas"></canvas></div>
+    </div>
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📐 Size-wise Outputs (Pieces)</div>
+      <div style="height:260px;position:relative"><canvas id="outputs-size-canvas"></canvas></div>
+    </div>
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📏 Thickness-wise Outputs (Pieces)</div>
+      <div style="height:260px;position:relative"><canvas id="outputs-thick-canvas"></canvas></div>
+    </div>
+  `;
+  const datePcsMap = {};
+  outputRows.forEach(r => { const d=String(r.Timestamp||'').split(' ')[0]; if(d&&d!='Unknown') datePcsMap[d]=(datePcsMap[d]||0)+Number(r.PCS_OUT||0); });
+  const trendLabels = Object.keys(datePcsMap).sort();
+  if (outputsLineChart) outputsLineChart.destroy();
+  outputsLineChart = new Chart(document.getElementById('outputs-line-canvas').getContext('2d'), {
+    type:'line', data:{ labels:trendLabels, datasets:[{ label:'Pieces Out', data:trendLabels.map(d=>datePcsMap[d]),
+      borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,.06)', fill:true, tension:.15, borderWidth:2 }] },
+    options:{ responsive:true, maintainAspectRatio:false, scales:{ x:{grid:{display:false}}, y:{beginAtZero:true} } }
+  });
+  const brandMap = {};
+  outputRows.forEach(r => { const b=r.BRAND||'Unknown'; brandMap[b]=(brandMap[b]||0)+Number(r.PCS_OUT||0); });
+  const pLabels = Object.keys(brandMap).sort();
+  if (outputsPieChart) outputsPieChart.destroy();
+  outputsPieChart = new Chart(document.getElementById('outputs-pie-canvas').getContext('2d'), {
+    type:'doughnut', data:{ labels:pLabels, datasets:[{ data:pLabels.map(b=>brandMap[b]),
+      backgroundColor:pLabels.map(b=>brandColorMap[b]||'#999'), borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'right',labels:{boxWidth:10,font:{size:10}}} } }
+  });
+  const sizeMap = {};
+  outputRows.forEach(r => { const s=String(r.SIZE||'?'); sizeMap[s]=(sizeMap[s]||0)+Number(r.PCS_OUT||0); });
+  const sLabels = Object.keys(sizeMap).sort();
+  if (outputsSizeChart) outputsSizeChart.destroy();
+  outputsSizeChart = new Chart(document.getElementById('outputs-size-canvas').getContext('2d'), {
+    type:'bar', data:{ labels:sLabels, datasets:[{ label:'Pieces Out', data:sLabels.map(s=>sizeMap[s]),
+      backgroundColor:sLabels.map((_,i)=>SIZE_PALETTE[i%SIZE_PALETTE.length]), borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y', scales:{ x:{beginAtZero:true} }, plugins:{legend:{display:false}} }
+  });
+  const thickMap = {};
+  outputRows.forEach(r => { const t=String(r.THICKNESS||'?')+'mm'; thickMap[t]=(thickMap[t]||0)+Number(r.PCS_OUT||0); });
+  const tLabels = Object.keys(thickMap).sort((a,b)=>parseInt(a)-parseInt(b));
+  if (outputsThickChart) outputsThickChart.destroy();
+  outputsThickChart = new Chart(document.getElementById('outputs-thick-canvas').getContext('2d'), {
+    type:'bar', data:{ labels:tLabels, datasets:[{ label:'Pieces Out', data:tLabels.map(t=>thickMap[t]),
+      backgroundColor:tLabels.map((_,i)=>THICK_PALETTE[i%THICK_PALETTE.length]), borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{beginAtZero:true} }, plugins:{legend:{display:false}} }
+  });
+}
+
+function renderHistoryCharts(historyRows) {
+  const container = document.getElementById('rpt-history-analytics');
+  if (!container) return;
+  if (historyRows.length === 0) {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;color:var(--muted);grid-column:1/-1">No transactions matching filters</div>';
+    return;
+  }
+  container.innerHTML = `
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📊 Daily Traffic (In vs Out)</div>
+      <div style="height:260px;position:relative"><canvas id="history-compare-canvas"></canvas></div>
+    </div>
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">🍩 Transaction Mix</div>
+      <div style="height:260px;position:relative"><canvas id="history-pie-canvas"></canvas></div>
+    </div>
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📐 Size-wise Transactions (Pieces)</div>
+      <div style="height:260px;position:relative"><canvas id="history-size-canvas"></canvas></div>
+    </div>
+    <div class="card" style="padding:15px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">📏 Thickness-wise Transactions (Pieces)</div>
+      <div style="height:260px;position:relative"><canvas id="history-thick-canvas"></canvas></div>
+    </div>
+  `;
+  const dateMap = {}; let totalInCount=0, totalOutCount=0;
+  const sizeMapH={}, thickMapH={};
+  historyRows.forEach(r => {
+    const date=String(r.Timestamp||'').split(' ')[0]||'Unknown';
+    const type=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');
+    const pcs=type==='INPUT'?Number(r.PIECES_IN||r.PCS||0):Number(r.PCS_OUT||r.PCS||0);
+    const sz=String(r.SIZE||'?'), tk=String(r.THICKNESS||'?')+'mm';
+    if(date!=='Unknown'){
+      if(!dateMap[date]) dateMap[date]={in:0,out:0};
+      if(type==='INPUT'){ dateMap[date].in+=pcs; totalInCount++; } else { dateMap[date].out+=pcs; totalOutCount++; }
+    }
+    sizeMapH[sz]=(sizeMapH[sz]||0)+pcs;
+    thickMapH[tk]=(thickMapH[tk]||0)+pcs;
+  });
+  const compareLabels = Object.keys(dateMap).sort();
+  if (historyCompareChart) historyCompareChart.destroy();
+  historyCompareChart = new Chart(document.getElementById('history-compare-canvas').getContext('2d'), {
+    type:'bar',
+    data:{ labels:compareLabels, datasets:[
+      { label:'Inputs (Pcs)', data:compareLabels.map(d=>dateMap[d].in), backgroundColor:'rgba(16,185,129,.7)', borderColor:'#10b981', borderWidth:1 },
+      { label:'Outputs (Pcs)', data:compareLabels.map(d=>dateMap[d].out), backgroundColor:'rgba(239,68,68,.7)', borderColor:'#ef4444', borderWidth:1 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false, scales:{ x:{grid:{display:false}}, y:{beginAtZero:true} } }
+  });
+  if (historyPieChart) historyPieChart.destroy();
+  historyPieChart = new Chart(document.getElementById('history-pie-canvas').getContext('2d'), {
+    type:'doughnut', data:{ labels:['Inputs','Outputs'], datasets:[{ data:[totalInCount,totalOutCount],
+      backgroundColor:['rgba(16,185,129,.75)','rgba(239,68,68,.75)'], borderColor:['#10b981','#ef4444'], borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{position:'right',labels:{boxWidth:10,font:{size:10}}} } }
+  });
+  const sLabels = Object.keys(sizeMapH).sort();
+  if (historySizeChart) historySizeChart.destroy();
+  historySizeChart = new Chart(document.getElementById('history-size-canvas').getContext('2d'), {
+    type:'bar', data:{ labels:sLabels, datasets:[{ label:'Pieces', data:sLabels.map(s=>sizeMapH[s]),
+      backgroundColor:sLabels.map((_,i)=>SIZE_PALETTE[i%SIZE_PALETTE.length]), borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false, indexAxis:'y', scales:{ x:{beginAtZero:true} }, plugins:{legend:{display:false}} }
+  });
+  const tLabels = Object.keys(thickMapH).sort((a,b)=>parseInt(a)-parseInt(b));
+  if (historyThickChart) historyThickChart.destroy();
+  historyThickChart = new Chart(document.getElementById('history-thick-canvas').getContext('2d'), {
+    type:'bar', data:{ labels:tLabels, datasets:[{ label:'Pieces', data:tLabels.map(t=>thickMapH[t]),
+      backgroundColor:tLabels.map((_,i)=>THICK_PALETTE[i%THICK_PALETTE.length]), borderWidth:1 }] },
+    options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{beginAtZero:true} }, plugins:{legend:{display:false}} }
+  });
+}
+
+async function fixZeroSqmNa(){
+  showToast('Recalculating zero SQM/NA rows…','info');
+  try{
+    const res = await api('recalculateZeroSqm');
+    const msg = 'Fixed: ' + (res.inputs||0) + ' input rows, ' + (res.outputs||0) + ' output rows, ' + (res.stock||0) + ' stock rows' +
+                (res.errors&&res.errors.length?' | Skipped: '+res.errors.length:'');
+    showToast(msg, 'success');
+    await loadStockViewer();
+  } catch(e) { showToast('Fix failed: '+e.message,'error'); }
 }
 
 async function loadReports(){
@@ -2110,14 +2878,19 @@ async function loadReports(){
       api('getTransactions',{from,to}),
       api('getMovements')
     ]);
+    if (currentSection === 'wip') {
+      summaryData.inputs = (summaryData.inputs||[]).filter(r=>String(r.LOT_NO).trim() === '100');
+      summaryData.outputs = (summaryData.outputs||[]).filter(r=>String(r.LOT_NO).trim() === '100');
+      summaryData.stock = (summaryData.stock||[]).filter(r=>String(r.LOT_NO).trim() === '100');
+      txData.rows = (txData.rows||[]).filter(r=>String(r.LOT_NO).trim() === '100');
+      moveData.rows = (moveData.rows||[]).filter(r=>String(r.LOT_NO).trim() === '100');
+    }
     summaryCache=summaryData;
     summaryCache._transactions=txData.rows||[];
     reportMovementsCache=moveData.rows||[];
     renderReports(summaryCache);
     renderMovementRows(reportMovementsCache);
-    if (summaryCache && summaryCache.stock) {
-      renderStockChart(summaryCache.stock);
-    }
+    renderAllReportAnalytics();
     showToast('Reports loaded','info');
   }catch(e){showToast('Load failed: '+e.message,'error');}
   ['rpt-summary','rpt-movements','rpt-inputs','rpt-outputs','rpt-history'].forEach(id=>{
@@ -2138,11 +2911,16 @@ function renderReports(data){
   document.getElementById('rpt-pcs-in').textContent=totInPcs;document.getElementById('rpt-sqm-in').textContent=totInSqm.toFixed(2)+' m²';
   document.getElementById('rpt-pcs-out').textContent=totOutPcs;document.getElementById('rpt-sqm-out').textContent=totOutSqm.toFixed(2)+' m²';
   document.getElementById('rpt-net').textContent=totInPcs-totOutPcs;document.getElementById('rpt-stock').textContent=totStk;
+  const rptStockSub = document.querySelector('#rpt-stock + .kpi-sub');
+  if (rptStockSub) {
+    rptStockSub.textContent = currentSection === 'wip' ? 'pieces in stock' : 'across all lots';
+  }
   const rBrands=[...new Set(stock.map(r=>r.BRAND).filter(Boolean))].sort();
   const rSizes=[...new Set(stock.map(r=>String(r.SIZE||'')).filter(Boolean))].sort();
   const rThicks=[...new Set(stock.map(r=>String(r.THICKNESS||'')).filter(Boolean))].sort((a,b)=>+a-+b);
-  fillSelect('rpt-f-brand',rBrands,'All Brands');fillSelect('rpt-f-size',rSizes,'All Sizes');fillSelect('rpt-f-thick',rThicks,'All Thickness');
+  fillSelect('rpt-f-brand',rBrands,'All Brands');fillSelect('rpt-f-size',rSizes,'All Sizes');fillSelect('rpt-f-thick',rThicks,'All Thickness');fillSelect('rpt-mov-f-size',rSizes,'All Sizes');fillSelect('rpt-mov-f-thick',rThicks,'All Thickness');
   renderReportSummaryTable(stock);
+  renderStockSummaryCharts(stock);
   reportInputsCache=inputs;reportOutputsCache=outputs;
   const merged=data._transactions&&data._transactions.length>0?data._transactions:[...inputs.map(r=>({...r,TYPE:'INPUT',PCS:r.PIECES_IN})),...outputs.map(r=>({...r,TYPE:'OUTPUT',PCS:r.PCS_OUT}))].sort((a,b)=>String(a.Timestamp).localeCompare(String(b.Timestamp)));
   reportHistoryCache=merged;
@@ -2172,7 +2950,7 @@ function renderMovementRows(rows){
   tbody.innerHTML = rows.map(r => `
     <tr>
       <td><span class="badge badge-code">${r.MATERIAL_CODE}</span></td>
-      <td class="mono">${r.LOT_NO}</td>
+      <td class="mono col-lot">${r.LOT_NO}</td>
       <td class="mono" style="color:var(--muted);font-size:11px">${r.DAY_ENTERED}</td>
       <td class="mono" style="color:var(--muted);font-size:11px">${r.LAST_MOVED}</td>
       <td class="mono" style="font-weight:600">${r.DURATION_FROM_LAST_MOVED || '-'}</td>
@@ -2181,21 +2959,29 @@ function renderMovementRows(rows){
 }
 
 function applyMovementFilters(){
-  const lot = (document.getElementById('rpt-mov-f-lot')?.value||'').trim();
-  const filtered = lot
-    ? reportMovementsCache.filter(r => String(r.LOT_NO||'').trim() === lot)
-    : reportMovementsCache;
+  const brand = document.getElementById('rpt-mov-f-brand')?.value||'';
+  const size  = document.getElementById('rpt-mov-f-size')?.value||'';
+  const thick = document.getElementById('rpt-mov-f-thick')?.value||'';
+  const lot   = (document.getElementById('rpt-mov-f-lot')?.value||'').trim();
+  const filtered = reportMovementsCache.filter(r =>
+    (!brand || r.BRAND===brand) &&
+    (!size  || String(r.SIZE||'')===size) &&
+    (!thick || String(r.THICKNESS||'')===thick) &&
+    (!lot   || String(r.LOT_NO||'').trim()===lot)
+  );
   renderMovementRows(filtered);
+  renderMovementCharts(filtered);
 }
 function clearMovementFilters(){
-  ['rpt-mov-f-brand','rpt-mov-f-lot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['rpt-mov-f-brand','rpt-mov-f-size','rpt-mov-f-thick','rpt-mov-f-lot','rpt-mov-f-matcode'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderMovementRows(reportMovementsCache);
+  renderMovementCharts(reportMovementsCache);
 }
 
 function renderReportSummaryTable(rows){
   const tbody=document.getElementById('rpt-summary-tbody');const tfoot=document.getElementById('rpt-summary-tfoot');
   if(rows.length===0){tbody.innerHTML='<tr class="empty-row"><td colspan="10">No stock data</td></tr>';tfoot.style.display='none';return;}
-  tbody.innerHTML=rows.map(r=>`<tr><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${brandCell(r.BRAND)}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-green">${Number(r.PIECES_REMAINING||0)}</td><td class="mono num-green">${Number(r.SQM_REMAINING||0).toFixed(4)}</td><td class="mono num-amber">${Number(r.NA_REMAINING||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+  tbody.innerHTML=rows.map(r=>`<tr><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${brandCell(r.BRAND)}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono col-lot">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-green">${Number(r.PIECES_REMAINING||0)}</td><td class="mono num-green">${Number(r.SQM_REMAINING||0).toFixed(4)}</td><td class="mono num-amber">${Number(r.NA_REMAINING||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
   const totPcs=rows.reduce((s,r)=>s+Number(r.PIECES_REMAINING||0),0);
   const totSqm=rows.reduce((s,r)=>s+Number(r.SQM_REMAINING||0),0);
   const totNa=rows.reduce((s,r)=>s+Number(r.NA_REMAINING||0),0);
@@ -2208,16 +2994,21 @@ function applyReportFilters(){
   const size  = document.getElementById('rpt-f-size').value;
   const thick = document.getElementById('rpt-f-thick').value;
   const lot   = (document.getElementById('rpt-f-lot')?.value||'').trim();
-  renderReportSummaryTable(reportStockCache.filter(r=>
+  const matcode = (document.getElementById('rpt-f-matcode')?.value||'').trim().toLowerCase();
+  const stock = reportStockCache.filter(r=>
     (!brand || r.BRAND===brand) &&
     (!size  || String(r.SIZE||'')===size) &&
     (!thick || String(r.THICKNESS||'')===thick) &&
-    (!lot   || String(r.LOT_NO||'').trim() === lot)
-  ));
+    (!lot   || String(r.LOT_NO||'').trim() === lot) &&
+    (!matcode || String(r.MATERIAL_CODE||'').toLowerCase().includes(matcode))
+  );
+  renderReportSummaryTable(stock);
+  renderStockSummaryCharts(stock);
 }
 function clearReportFilters(){
-  ['rpt-f-brand','rpt-f-size','rpt-f-thick','rpt-f-lot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['rpt-f-brand','rpt-f-size','rpt-f-thick','rpt-f-lot','rpt-f-matcode'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderReportSummaryTable(reportStockCache);
+  renderStockSummaryCharts(reportStockCache);
 }
 // ── REPORT INPUTS/OUTPUTS/HISTORY FILTER+SORT ─────────────────
 let reportInputsCache=[];let reportOutputsCache=[];let reportHistoryCache=[];
@@ -2226,9 +3017,9 @@ function fillReportSubFilters(inputs,outputs,merged){
   const allBrands=[...new Set([...inputs,...outputs].map(r=>r.BRAND).filter(Boolean))].sort();
   const allSizes=[...new Set([...inputs,...outputs].map(r=>String(r.SIZE||'')).filter(Boolean))].sort();
   const allThicks=[...new Set([...inputs,...outputs].map(r=>String(r.THICKNESS||'')).filter(Boolean))].sort((a,b)=>+a-+b);
-  ['rpt-in-f-brand','rpt-out-f-brand','rpt-hist-f-brand'].forEach(id=>fillSelect(id,allBrands,'All Brands'));
-  ['rpt-in-f-size','rpt-out-f-size','rpt-hist-f-size'].forEach(id=>fillSelect(id,allSizes,'All Sizes'));
-  ['rpt-in-f-thick','rpt-out-f-thick','rpt-hist-f-thick'].forEach(id=>fillSelect(id,allThicks,'All Thickness'));
+  ['rpt-in-f-brand','rpt-out-f-brand','rpt-hist-f-brand','rpt-mov-f-brand'].forEach(id=>fillSelect(id,allBrands,'All Brands'));
+  ['rpt-in-f-size','rpt-out-f-size','rpt-hist-f-size','rpt-mov-f-size'].forEach(id=>fillSelect(id,allSizes,'All Sizes'));
+  ['rpt-in-f-thick','rpt-out-f-thick','rpt-hist-f-thick','rpt-mov-f-thick'].forEach(id=>fillSelect(id,allThicks,'All Thickness'));
 }
 
 function sortRows(rows,sortVal,pcsField){
@@ -2242,7 +3033,7 @@ function sortRows(rows,sortVal,pcsField){
 }
 
 function renderInputRows(rows){
-  document.getElementById('rpt-inputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No inputs match filters</td></tr>':rows.map(r=>`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${brandCell(r.BRAND)}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-green">${Number(r.PIECES_IN||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+  document.getElementById('rpt-inputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No inputs match filters</td></tr>':rows.map(r=>`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${brandCell(r.BRAND)}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono col-lot">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-green">${Number(r.PIECES_IN||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
   const tfoot=document.getElementById('rpt-inputs-tfoot');
   if(rows.length>0&&tfoot){
     const totPcs=rows.reduce((s,r)=>s+Number(r.PIECES_IN||0),0);
@@ -2255,7 +3046,7 @@ function renderInputRows(rows){
   } else if(tfoot){tfoot.style.display='none';}
 }
 function renderOutputRows(rows){
-  document.getElementById('rpt-outputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No outputs match filters</td></tr>':rows.map(r=>`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${brandCell(r.BRAND)}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-red">${Number(r.PCS_OUT||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
+  document.getElementById('rpt-outputs-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="11">No outputs match filters</td></tr>':rows.map(r=>`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${brandCell(r.BRAND)}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono col-lot">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num num-red">${Number(r.PCS_OUT||0)}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`).join('');
   const tfoot=document.getElementById('rpt-outputs-tfoot');
   if(rows.length>0&&tfoot){
     const totPcs=rows.reduce((s,r)=>s+Number(r.PCS_OUT||0),0);
@@ -2268,7 +3059,7 @@ function renderOutputRows(rows){
   } else if(tfoot){tfoot.style.display='none';}
 }
 function renderHistoryRows(rows){
-  document.getElementById('rpt-history-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="12">No transactions match filters</td></tr>':rows.map(r=>{const type=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');const pcs=type==='INPUT'?Number(r.PIECES_IN||r.PCS||0):Number(r.PCS_OUT||r.PCS||0);return`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${type==='INPUT'?'badge-green':'badge-red'}">${type}</span></td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${brandCell(r.BRAND)}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num ${type==='INPUT'?'num-green':'num-red'}">${pcs}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`;}).join('');
+  document.getElementById('rpt-history-tbody').innerHTML=rows.length===0?'<tr class="empty-row"><td colspan="12">No transactions match filters</td></tr>':rows.map(r=>{const type=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');const pcs=type==='INPUT'?Number(r.PIECES_IN||r.PCS||0):Number(r.PCS_OUT||r.PCS||0);return`<tr><td style="white-space:nowrap">${fmtTs(r.Timestamp)}</td><td><span class="badge ${type==='INPUT'?'badge-green':'badge-red'}">${type}</span></td><td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td><td>${brandCell(r.BRAND)}</td><td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td><td class="mono col-lot">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td><td class="num ${type==='INPUT'?'num-green':'num-red'}">${pcs}</td><td class="mono">${Number(r.SQM||0).toFixed(4)}</td><td class="mono">${Number(r.NA||0).toFixed(4)}</td><td class="mono" style="color:var(--blue);font-size:11px;font-weight:500">${r.USER||'—'}</td></tr>`;}).join('');
 }
 
 function applyInputFilters(){
@@ -2281,14 +3072,17 @@ function applyInputFilters(){
     (!brand || r.BRAND===brand) &&
     (!size  || String(r.SIZE||'')===size) &&
     (!thick || String(r.THICKNESS||'')===thick) &&
-    (!lot   || String(r.LOT_NO||'').trim() === lot)
+    (!lot   || String(r.LOT_NO||'').trim() === lot) &&
+    (!matcode || String(r.MATERIAL_CODE||'').toLowerCase().includes(matcode))
   );
-  renderInputRows(sortRows(rows,sort,'PIECES_IN'));
+  const sorted = sortRows(rows,sort,'PIECES_IN');
+  renderInputRows(sorted);
+  renderInputCharts(rows);
 }
 
 
 function clearInputFilters(){
-  ['rpt-in-f-brand','rpt-in-f-size','rpt-in-f-thick','rpt-in-f-lot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['rpt-in-f-brand','rpt-in-f-size','rpt-in-f-thick','rpt-in-f-lot','rpt-in-f-matcode'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const s=document.getElementById('rpt-in-sort');if(s)s.value='ts-desc';
   applyInputFilters();
 }
@@ -2304,14 +3098,18 @@ function applyOutputFilters(){
     (!brand || r.BRAND===brand) &&
     (!size  || String(r.SIZE||'')===size) &&
     (!thick || String(r.THICKNESS||'')===thick) &&
-    (!lot   || String(r.LOT_NO||'').trim() === lot)
+    (!lot   || String(r.LOT_NO||'').trim() === lot) &&
+    (!matcode || String(r.MATERIAL_CODE||'').toLowerCase().includes(matcode))
   );
-  renderOutputRows(sortRows(rows,sort,'PCS_OUT'));
+  const sorted = sortRows(rows,sort,'PCS_OUT');
+  renderOutputRows(sorted);
+  renderOutputCharts(rows);
 }
 function clearOutputFilters(){
-  ['rpt-out-f-brand','rpt-out-f-size','rpt-out-f-thick','rpt-out-f-lot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['rpt-out-f-brand','rpt-out-f-size','rpt-out-f-thick','rpt-out-f-lot','rpt-out-f-matcode'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const s=document.getElementById('rpt-out-sort');if(s)s.value='ts-desc';
-  applyOutputFilters();
+  renderOutputRows(reportOutputsCache);
+  renderOutputCharts(reportOutputsCache);
 }
 
 
@@ -2328,15 +3126,19 @@ function applyHistoryFilters(){
            (!size  || String(r.SIZE||'')===size) &&
            (!thick || String(r.THICKNESS||'')===thick) &&
            (!type  || rt===type) &&
-           (!lot   || String(r.LOT_NO||'').trim() === lot);
+           (!lot   || String(r.LOT_NO||'').trim() === lot) &&
+    (!matcode || String(r.MATERIAL_CODE||'').toLowerCase().includes(matcode));
   });
   const pField=rows.length>0?'PCS':'PIECES_IN';
-  renderHistoryRows(sortRows(rows,sort,pField));
+  const sorted = sortRows(rows,sort,pField);
+  renderHistoryRows(sorted);
+  renderHistoryCharts(rows);
 }
 function clearHistoryFilters(){
   ['rpt-hist-f-brand','rpt-hist-f-size','rpt-hist-f-thick','rpt-hist-f-type','rpt-hist-f-lot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const s=document.getElementById('rpt-hist-sort');if(s)s.value='ts-asc';
-  applyHistoryFilters();
+  renderHistoryRows(reportHistoryCache);
+  renderHistoryCharts(reportHistoryCache);
 }
 
 
@@ -2369,6 +3171,9 @@ async function loadRecentInputs(){
   try{
     const data = await api('getSummary',{from,to});
     riRowsCache = (data.inputs||[]).slice().reverse();
+    if (currentSection === 'wip') {
+      riRowsCache = riRowsCache.filter(r=>String(r.LOT_NO).trim() === '100');
+    }
     fillRiFilterDropdowns(riRowsCache);
     renderRiRows(riRowsCache);
   }catch(e){ tbody.innerHTML = '<tr class="empty-row"><td colspan="12">Load failed: '+e.message+'</td></tr>'; showToast('Load failed: '+e.message,'error'); }
@@ -2617,7 +3422,15 @@ function updateEditMaterialCode(){
   let mr=masterRows.find(m=>String(m.BRAND||'').trim().toLowerCase()===brand.toLowerCase()&&String(m.THICKNESS||'').trim()===thickStr&&String(m.SIZE||'').trim()===size);
   if(!mr)mr=masterRows.find(m=>String(m.BRAND||'').trim().toLowerCase()===brand.toLowerCase()&&String(m.THICKNESS||'').trim()===thickStr);
   if(!mr)mr=masterRows.find(m=>String(m.BRAND||'').trim().toLowerCase()===brand.toLowerCase());
-  if(mr&&mr.MATERIAL_CODE_INITIALS){const init=String(mr.MATERIAL_CODE_INITIALS||'').trim();const tp=thickStr?String(Number(thickStr)).padStart(2,'0'):'';const sp=size?String(size).padStart(5,'0'):'';document.getElementById('em-code').textContent=init+tp+sp||'—';document.getElementById('em-info').textContent=brand+' · '+thickStr+'mm · '+size;}
+  if(mr && mr.MATERIAL_CODE_INITIALS){
+    const init=String(mr.MATERIAL_CODE_INITIALS||'').trim();
+    const isWip = currentSection === 'wip';
+    const mc = isWip
+      ? buildWipMaterialCode(init, thickStr, size)
+      : buildDispatchMaterialCode(init, thickStr, size);
+    document.getElementById('em-code').textContent=mc||'—';
+    document.getElementById('em-info').textContent=brand+' · '+thickStr+'mm · '+size;
+  }
   else{document.getElementById('em-code').textContent='⚠️ ???';document.getElementById('em-info').textContent=brand+' (not in MasterData)';}
   calcEditPreview();
 }
@@ -2630,7 +3443,7 @@ function calcEditPreview(){
   const thickStr=String(document.getElementById('em-thick')?.value||'').trim();
   const size=String(document.getElementById('em-size')?.value||'').trim();
   const mr=findMasterRow(brand,thickStr,size)||findMasterRow(null,null,size);
-  const sqmFac=mr?Number(mr.Sqmtr||0):0;
+  const sqmFac=resolveSqmFac(mr, size);
   const sqm=Math.round(pcs*sqmFac*10000)/10000;
   const na=Math.round(pcs*sqmFac*(Number(thickStr)/4)*10000)/10000;
   document.getElementById('em-sqm').value=sqm.toFixed(4);document.getElementById('em-na').value=na.toFixed(4);
@@ -2719,11 +3532,17 @@ async function renderPermissionSwitches(){
     masterSections.insertBefore(existing, masterSections.firstChild);
   }
   
+  const cols = masterColData?.columns || {};
+  const getColLetterOrFallback = (key, fallback) => {
+    const idx = cols[key]?.idx;
+    if (idx !== undefined && idx >= 0) return getColLetter(idx) + '2';
+    return fallback;
+  };
   const switches = [
-    { key:'enableInputEdit',    label:'Enable input edit',    col:'R2' },
-    { key:'enableInputDelete',  label:'Enable input delete',  col:'S2' },
-    { key:'enableOutputEdit',   label:'Enable Output edit',   col:'T2' },
-    { key:'enableOutputDelete', label:'Enable Output delete', col:'U2' }
+    { key:'enableInputEdit',    label:'Enable input edit',    col: getColLetterOrFallback('enableInputEdit', 'R2') },
+    { key:'enableInputDelete',  label:'Enable input delete',  col: getColLetterOrFallback('enableInputDelete', 'S2') },
+    { key:'enableOutputEdit',   label:'Enable Output edit',   col: getColLetterOrFallback('enableOutputEdit', 'T2') },
+    { key:'enableOutputDelete', label:'Enable Output delete', col: getColLetterOrFallback('enableOutputDelete', 'U2') }
   ];
   
   existing.innerHTML = `
@@ -2732,7 +3551,7 @@ async function renderPermissionSwitches(){
         🔒 Edit &amp; Delete Permissions
         <span class="badge" style="background:#7c3aed;color:#fff;margin-left:8px;font-size:10px">4 CONTROLS</span>
       </div>
-      <span style="font-size:11px;color:var(--muted)">Controls R2–U2 in MasterData sheet · Master password required to change</span>
+      <span style="font-size:11px;color:var(--muted)">Controls ${switches[0].col.substring(0,1)}–${switches[3].col.substring(0,1)} in ${currentSection === 'wip' ? 'Mat Master Data' : 'MasterData'} sheet · Master password required to change</span>
     </div>
     <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">
       ${switches.map(s=>`
@@ -2783,7 +3602,7 @@ async function savePermSwitch(){
   try{
     await api('saveEditPermissions', payload);
     editPermissions = payload;
-    showToast('✓ Permissions updated in MasterData sheet','success');
+    showToast('✓ Permissions updated in ' + (currentSection === 'wip' ? 'Mat Master Data' : 'MasterData') + ' sheet','success');
     if(statusEl) statusEl.textContent = '✓ Saved at '+new Date().toLocaleTimeString();
   }catch(e){
     showToast('Failed to save permissions: '+e.message,'error');
@@ -2818,7 +3637,13 @@ function escQ(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 
 function renderMasterSections(data){
   const container=document.getElementById('masterSections');container.innerHTML='';
-  MASTER_COLUMNS.forEach(colDef=>{
+  function getActiveMasterColumns() {
+    if (currentSection === 'wip') {
+      return MASTER_COLUMNS.filter(c => c.key !== 'SLOC');
+    }
+    return MASTER_COLUMNS;
+  }
+  getActiveMasterColumns().forEach(colDef=>{
     const section=document.createElement('div');
     section.className='master-section card';section.id='ms-'+colDef.key;section.style.marginBottom='20px';
     const colInfo=data.columns[colDef.key]||{values:[],lastRow:1};
@@ -2860,13 +3685,15 @@ function renderMasterSections(data){
           placeholder="${type==='email'?'email@co.com':type==='number'?'0':'—'}">`;
       };
 
+      const mcColIdx = data.columns['MATERIAL_CODE']?.idx;
+      const mcColLetter = getColLetter(mcColIdx) || 'J';
       const tRows=mcVals.map((v,i)=>{
         const row=v.row;
         const min=minMap[row]||'';
         const e1=em1Map[row]||'';const e2=em2Map[row]||'';const e3=em3Map[row]||'';
         return`<tr>
           <td style="color:var(--muted);font-size:12px">${i+1}</td>
-          <td>${editCell('MATERIAL_CODE',row,v.value,'text','130px')}<div style="font-size:10px;color:var(--muted);margin-top:2px">J${row}</div></td>
+          <td>${editCell('MATERIAL_CODE',row,v.value,'text','130px')}<div style="font-size:10px;color:var(--muted);margin-top:2px">${mcColLetter}${row}</div></td>
           <td>${editCell('MIN_STOCK',row,min,'number','80px')}</td>
           <td>${editCell('ALERT_EMAIL_1',row,e1,'email','170px')}</td>
           <td>${editCell('ALERT_EMAIL_2',row,e2,'email','170px')}</td>
@@ -2885,7 +3712,7 @@ function renderMasterSections(data){
               <th>Min Stock (PCS)</th>
               <th>Alert Email 1</th><th>Alert Email 2</th><th>Alert Email 3</th>
             </tr></thead>
-            <tbody>${tRows||'<tr class="empty-row"><td colspan="6">No material codes found in MasterData</td></tr>'}</tbody>
+            <tbody>${tRows||'<tr class="empty-row"><td colspan="6">No material codes found in ' + (currentSection === 'wip' ? 'Mat Master Data' : 'MasterData') + '</td></tr>'}</tbody>
           </table>
         </div>
         <div style="padding:8px 16px;font-size:11px;color:var(--muted);border-top:1px solid var(--border2)">${mcVals.length} material code rows · Material Code, Min Stock &amp; Alert Emails are all editable · Material code changes also update CurrentStock and Inputs sheets</div>
@@ -3195,6 +4022,9 @@ async function loadRecentOutputs(){
   try{
     const data = await api('getSummary',{from,to});
     roRowsCache = (data.outputs||[]).slice().reverse();
+    if (currentSection === 'wip') {
+      roRowsCache = roRowsCache.filter(r=>String(r.LOT_NO).trim() === '100');
+    }
     fillRoFilterDropdowns(roRowsCache);
     renderRoRows(roRowsCache);
   }catch(e){ tbody.innerHTML = '<tr class="empty-row"><td colspan="12">Load failed: '+e.message+'</td></tr>'; showToast('Load failed: '+e.message,'error'); }
@@ -3208,7 +4038,8 @@ let editingOutputRow=null;
 function openOutputEditModal(r){
   editingOutputRow=r;
   document.getElementById('eom-code').textContent=r.MATERIAL_CODE||'—';
-  document.getElementById('eom-info').textContent=(r.BRAND||'—')+' · Lot '+(r.LOT_NO||'—')+' · '+(r.THICKNESS||'—')+'mm · '+(r.SIZE||'—');
+  const lotText = currentSection === 'wip' ? '' : ' · Lot ' + (r.LOT_NO||'—');
+  document.getElementById('eom-info').textContent=(r.BRAND||'—')+lotText+' · '+(r.THICKNESS||'—')+'mm · '+(r.SIZE||'—');
   document.getElementById('eom-ts').textContent='Timestamp: '+(r.Timestamp||'—');
   document.getElementById('eom-pcs').value=r.PCS_OUT||0;
   document.getElementById('eom-old-pcs').textContent=r.PCS_OUT||0;
@@ -3430,7 +4261,7 @@ function renderRiRows(rows){
     <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td>
     <td>${brandCell(r.BRAND)}</td>
     <td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td>
-    <td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
+    <td class="mono col-lot">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
     <td class="num num-green">${Number(r.PIECES_IN||0)}</td>
     <td class="mono" style="color:var(--green)">${Number(r.SQM||0).toFixed(4)}</td>
     <td class="mono" style="color:var(--amber)">${Number(r.NA||0).toFixed(4)}</td>
@@ -3487,7 +4318,7 @@ function renderRoRows(rows){
     <td><span class="badge ${r.SLOC==='BRANDED'?'badge-sloc-branded':'badge-sloc-unbranded'}">${r.SLOC||'—'}</span></td>
     <td>${brandCell(r.BRAND)}</td>
     <td><span class="badge badge-code">${r.MATERIAL_CODE||'—'}</span></td>
-    <td class="mono">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
+    <td class="mono col-lot">${r.LOT_NO||'—'}</td><td class="mono">${r.THICKNESS||'—'}mm</td><td class="mono">${r.SIZE||'—'}</td>
     <td class="num num-red">${Number(r.PCS_OUT||0)}</td>
     <td class="mono" style="color:var(--red)">${Number(r.SQM||0).toFixed(4)}</td>
     <td class="mono" style="color:var(--red)">${Number(r.NA||0).toFixed(4)}</td>
@@ -3579,7 +4410,7 @@ function checkEntryPassword(){
     gate.style.opacity = '0';
     setTimeout(()=>{
       gate.style.display = 'none';
-      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('sectionScreen').style.display = 'flex';
     }, 350);
   } else {
     // Wrong — shake the box and show error
@@ -3607,8 +4438,7 @@ function toggleEgEye(){
 
 // ── INIT ─────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded',()=>{
-  // Start loading users in background immediately (disguised loading)
-  loadUsers();
+  preloadAllUsers();
   // Focus the password input
   setTimeout(()=>{
     const egInput = document.getElementById('egInput');
@@ -3626,7 +4456,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     <div style="font-size:13px;color:var(--text,#1c1917);line-height:1.6;background:#fef3c7;border-radius:8px;padding:12px 14px;margin-bottom:16px">
       The same material was already moved out today —
       <strong style="color:#b45309" id="dupeElapsed">—</strong>.<br>
-      <span style="color:#6b7280;font-size:12px">Code: <b id="dupeCode">—</b> &nbsp;·&nbsp; Lot: <b id="dupeLot">—</b> &nbsp;·&nbsp; Qty: <b id="dupePcs">—</b> pcs</span>
+      <span style="color:#6b7280;font-size:12px">Code: <b id="dupeCode">—</b> <span class="col-lot">&nbsp;·&nbsp; Lot: <b id="dupeLot">—</b></span> &nbsp;·&nbsp; Qty: <b id="dupePcs">—</b> pcs</span>
     </div>
     <div style="font-size:13px;color:var(--muted,#78716c);margin-bottom:20px">
       If this was intentional (genuine second move), tap <b>Yes, Re-enter</b>.<br>
