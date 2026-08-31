@@ -845,6 +845,11 @@ body.hide-lot-cols .lot-element {
             <select class="form-control" id="out-sort" onchange="filterOutput()">
               <option value="fifo" selected>FIFO (Oldest first)</option>
               <option value="filo">FILO (Newest first)</option>
+              <option value="lot-asc">Lot Number Ascending (1 → 99)</option>
+              <option value="lot-desc">Lot Number Descending (99 → 1)</option>
+              <option value="alpha">Alphabetical (Brand A → Z)</option>
+              <option value="pcs-asc">PCS Ascending (Lowest stock first)</option>
+              <option value="pcs-desc">PCS Descending (Highest stock first)</option>
               <option value="entry">Same order as entered</option>
             </select>
           </div>
@@ -2536,6 +2541,16 @@ function filterOutput(){
     filteredInv.sort((a, b) => String(a.Timestamp || '').localeCompare(String(b.Timestamp || '')));
   } else if (sort === 'filo') {
     filteredInv.sort((a, b) => String(b.Timestamp || '').localeCompare(String(a.Timestamp || '')));
+  } else if (sort === 'lot-asc') {
+    filteredInv.sort((a, b) => (Number(a.LOT_NO) || 0) - (Number(b.LOT_NO) || 0) || String(a.LOT_NO || '').localeCompare(String(b.LOT_NO || '')));
+  } else if (sort === 'lot-desc') {
+    filteredInv.sort((a, b) => (Number(b.LOT_NO) || 0) - (Number(a.LOT_NO) || 0) || String(b.LOT_NO || '').localeCompare(String(a.LOT_NO || '')));
+  } else if (sort === 'alpha') {
+    filteredInv.sort((a, b) => String(a.BRAND || '').localeCompare(String(b.BRAND || '')) || String(a.MATERIAL_CODE || '').localeCompare(String(b.MATERIAL_CODE || '')));
+  } else if (sort === 'pcs-asc') {
+    filteredInv.sort((a, b) => (Number(a.PIECES_REMAINING) || 0) - (Number(b.PIECES_REMAINING) || 0));
+  } else if (sort === 'pcs-desc') {
+    filteredInv.sort((a, b) => (Number(b.PIECES_REMAINING) || 0) - (Number(a.PIECES_REMAINING) || 0));
   } else if (sort === 'entry') {
     // Already in entry order from inventoryRows, but we can re-sort by _rowIndex if available
     filteredInv.sort((a, b) => (a._rowIndex || 0) - (b._rowIndex || 0));
