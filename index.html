@@ -506,7 +506,7 @@ body.hide-lot-cols .lot-element {
       <div class="card-body">
         <div class="form-row">
           <div class="form-group"><label class="form-label">SLOC</label><select class="form-control" id="in-sloc" onchange="filterMasterBySloc()"><option value="">— Select —</option></select></div>
-          <div class="form-group"><label class="form-label">Brand</label><select class="form-control" id="in-brand" onchange="onBrandChange()"><option value="">— Select brand —</option></select></div>
+          <div class="form-group"><label class="form-label" style="display:flex;justify-content:space-between;align-items:center"><span>Brand</span> <span id="in-brand-badge"></span></label><select class="form-control" id="in-brand" onchange="onBrandChange()"><option value="">— Select brand —</option></select></div>
           <div class="form-group"><label class="form-label">Thickness (mm)</label><select class="form-control" id="in-thick" onchange="onThickChange()"><option value="">— Select —</option></select></div>
           <div class="form-group"><label class="form-label">Size</label><select class="form-control" id="in-size" onchange="onSizeChange()"><option value="">— Select —</option></select></div>
           <div class="form-group"><label class="form-label">Material Code</label>
@@ -824,7 +824,6 @@ body.hide-lot-cols .lot-element {
       <button class="btn btn-outline btn-sm" onclick="showReportView('inputs')" id="rptBtnInputs">📥 Inputs</button>
       <button class="btn btn-outline btn-sm" onclick="showReportView('outputs')" id="rptBtnOutputs">📤 Outputs</button>
       <button class="btn btn-outline btn-sm" onclick="showReportView('history')" id="rptBtnHistory">📋 All Transactions</button>
-      <button class="btn btn-outline btn-sm" onclick="fixZeroSqmNa()" title="Scan all sheets and recompute any row where SQM or NA is 0 but pieces > 0" style="border-color:var(--amber);color:var(--amber);margin-left:8px">⚠️ Fix Zero SQM/NA</button>
     </div>
     <div id="rpt-summary" class="card">
       <div class="card-header">
@@ -867,7 +866,6 @@ body.hide-lot-cols .lot-element {
           <button class="btn btn-outline btn-sm" onclick="clearMovementFilters()">✕ Clear</button>
         </div>
 </div>  <!-- closes rpt-summary card-header -->
-      <div id="reconcileResultPanel" style="display:none;background:var(--blue-lt);border:1px solid var(--blue);border-radius:var(--r-md);padding:12px 16px;margin:0 20px 12px;max-height:200px;overflow-y:auto"></div>
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr><th>Material Code</th><th class="col-lot">Lot No</th><th>Day Entered</th><th>Last Moved</th><th>Duration Since Last Moved</th></tr></thead>
@@ -1071,7 +1069,9 @@ body.hide-lot-cols .lot-element {
 <div id="toastContainer"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3TyQGOc5gX0AmlkJVxm1avZqyyfghAjefE_4sYqEWP1a0062V0o2qA5z1hDHaH1Pmhg/exec';
+const SCRIPT_URL = (window.location.hostname === 'stockifly.pages.dev' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? '/api'
+  : 'https://stockifly.pages.dev/api';
 
 let currentSection = 'dispatch';
 let summaryBarChart = null;
@@ -1317,7 +1317,84 @@ let currentReportView='summary';
 let currentUser='';
 let masterUnlocked=false;
 const MASTER_PASSWORD='100';
-let brandColorMap={};  // brand name → hex color from Google Sheet
+let brandColorMap = {
+  'ARCHITECT': '#FF0000',
+  'ARCHITECT PLUS PLYWOOD': '#FF0000',
+  'BOND 710 PLY': '#0000FF',
+  'BOND SHEILD PLY': '#0000FF',
+  'CLUB PRIME PLY': '#000000',
+  'CLASSIC MARINE PLY': '#A61C00',
+  'MAXIMA CB PLY': '#FF00FF',
+  'PF SAINIK 710': '#FBBC04',
+  'MAXIMA PLY': '#FF00FF',
+  'PF SAINIK STAR': '#FBBC04',
+  'CENTURY SOVEREIGN': '#D9D9D9',
+  'SAINIK OMR': '#FBBC04',
+  'SH. KUMKI OEM CB PLY': '#284E3F',
+  'SH. KUMKI OEM PLY': '#284E3F',
+  'SH. PRIMA 710 PLY': '#B6D7A8',
+  'SH. PLATINUM PLY': '#7E310B',
+  'SH. REJECTED BWR': '#EFEFEF',
+  'SH. SOVEREIGN 710 PLY': '#FF6D01',
+  'SH. GOLD PLY': '#EFEFEF',
+  'SH. GOLD U.F.': '#EFEFEF',
+  'CENTURY P.F B/BOARDS': '#EFEFEF',
+  'REJECTED BLOCK BOARD': '#EFEFEF',
+  'BOND SHEILD BLOCK BOARD': '#EFEFEF',
+  'CEN 710 SOVERN Board BWP': '#EFEFEF',
+  'BB REJECTED': '#EFEFEF',
+  'SH. GOLD BWP B/B': '#EFEFEF',
+  'SH. PRIMA ARMOR': '#B6D7A8',
+  'TEST_PLY (TEST)': '#B7B7B7',
+  'BOND SHEILD MAT WITHOUT FACE': '#0000FF',
+  'CENT.PLY GLP MAT ARCHITECT WITH FACE': '#FF0000',
+  'CENT.PLY GLP MAT ARCHITECT WITHOUT FACE': '#FF0000',
+  'MAT BLOCK BOARD BWP GRADE': '#FFFF00',
+  'MAT PLY PF BWR': '#8E7CC3',
+  'PF MAT WITHOUT FACE': '#6AA84F',
+  'SNK PF MAT WITHOUT FACE': '#FBBC04',
+  'UMF MAT WITHOUT FACE': '#FF00FF'
+};
+
+const brandTextColorMap = {
+  'ARCHITECT': '#ffffff',
+  'ARCHITECT PLUS PLYWOOD': '#ffffff',
+  'BOND 710 PLY': '#ffffff',
+  'BOND SHEILD PLY': '#ffffff',
+  'CLUB PRIME PLY': '#ffffff',
+  'CLASSIC MARINE PLY': '#ffffff',
+  'MAXIMA CB PLY': '#000000',
+  'PF SAINIK 710': '#000000',
+  'MAXIMA PLY': '#000000',
+  'PF SAINIK STAR': '#000000',
+  'CENTURY SOVEREIGN': '#000000',
+  'SAINIK OMR': '#000000',
+  'SH. KUMKI OEM CB PLY': '#ffffff',
+  'SH. KUMKI OEM PLY': '#ffffff',
+  'SH. PRIMA 710 PLY': '#000000',
+  'SH. PLATINUM PLY': '#ffffff',
+  'SH. REJECTED BWR': '#000000',
+  'SH. SOVEREIGN 710 PLY': '#000000',
+  'SH. GOLD PLY': '#000000',
+  'SH. GOLD U.F.': '#000000',
+  'CENTURY P.F B/BOARDS': '#000000',
+  'REJECTED BLOCK BOARD': '#000000',
+  'BOND SHEILD BLOCK BOARD': '#000000',
+  'CEN 710 SOVERN Board BWP': '#000000',
+  'BB REJECTED': '#000000',
+  'SH. GOLD BWP B/B': '#000000',
+  'SH. PRIMA ARMOR': '#000000',
+  'TEST_PLY (TEST)': '#000000',
+  'BOND SHEILD MAT WITHOUT FACE': '#ffffff',
+  'CENT.PLY GLP MAT ARCHITECT WITH FACE': '#ffffff',
+  'CENT.PLY GLP MAT ARCHITECT WITHOUT FACE': '#ffffff',
+  'MAT BLOCK BOARD BWP GRADE': '#000000',
+  'MAT PLY PF BWR': '#ffffff',
+  'PF MAT WITHOUT FACE': '#ffffff',
+  'SNK PF MAT WITHOUT FACE': '#000000',
+  'UMF MAT WITHOUT FACE': '#000000'
+};
+
 let editPermissions = { enableInputEdit:false, enableInputDelete:false, enableOutputEdit:false, enableOutputDelete:false };
 
 // ── BRAND COLOR HELPERS ──────────────────────────────────────
@@ -1328,15 +1405,38 @@ function isLightColor(hex){
   return(r*299+g*587+b*114)/1000>145;
 }
 function brandSwatch(brand){
-  const c=brandColorMap[String(brand||'').trim()];
+  const b=String(brand||'').trim();
+  const c=brandColorMap[b];
   if(!c)return'';
-  return`<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${c};margin-right:4px;flex-shrink:0;vertical-align:middle;border:1px solid rgba(0,0,0,.18)"></span>`;
+  return`<span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${c};margin-right:5px;flex-shrink:0;vertical-align:middle;border:1px solid rgba(0,0,0,.25)"></span>`;
 }
 function brandCell(brand){
-  const c=brandColorMap[String(brand||'').trim()];
-  if(!c)return`<span style="font-weight:500">${brand||'—'}</span>`;
-  const txt=isLightColor(c)?'#1a1714':'#ffffff';
-  return`<span style="display:inline-flex;align-items:center;gap:4px;background:${c};color:${txt};padding:2px 7px;border-radius:4px;font-size:12px;font-weight:600">${brand||'—'}</span>`;
+  const b=String(brand||'').trim();
+  const c=brandColorMap[b];
+  if(!c)return`<span style="font-weight:600">${brand||'—'}</span>`;
+  const txt=brandTextColorMap[b] || (isLightColor(c)?'#1a1714':'#ffffff');
+  const isLight = c.toUpperCase()==='#EFEFEF'||c.toUpperCase()==='#FFFFFF'||c.toUpperCase()==='#D9D9D9'||c.toUpperCase()==='#B7B7B7';
+  const border = isLight ? 'border:1px solid rgba(0,0,0,0.22);' : '';
+  return`<span style="display:inline-flex;align-items:center;gap:4px;background:${c};color:${txt};padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700;letter-spacing:0.02em;box-shadow:0 1px 2px rgba(0,0,0,0.08);${border}">${brand||'—'}</span>`;
+}
+
+function updateBrandSelectColor(selId){
+  const el = document.getElementById(selId);
+  if(!el) return;
+  const val = String(el.value||'').trim();
+  const col = brandColorMap[val];
+  if(col){
+    const txt = brandTextColorMap[val] || (isLightColor(col)?'#1a1714':'#ffffff');
+    el.style.backgroundColor = col;
+    el.style.color = txt;
+    el.style.fontWeight = '700';
+    el.style.borderColor = col;
+  } else {
+    el.style.backgroundColor = '';
+    el.style.color = '';
+    el.style.fontWeight = '';
+    el.style.borderColor = '';
+  }
 }
 
 // ── QR SCANNER HELPERS ──────────────────────────────────────
@@ -1847,20 +1947,40 @@ function populateInputDropdowns(){
 function fillSelect(id,values,placeholder){
   const el=document.getElementById(id);if(!el)return;
   const saved=el.value;el.innerHTML='<option value="">'+placeholder+'</option>';
-  const isBrandSel=id.includes('brand')||id.includes('Brand');
+  const isBrandSel=id.toLowerCase().includes('brand');
   values.forEach(v=>{
     const o=document.createElement('option');o.value=v;o.textContent=v;
     if(isBrandSel&&brandColorMap[v]){
-      o.style.backgroundColor=brandColorMap[v];
-      o.style.color=isLightColor(brandColorMap[v])?'#000':'#fff';
+      const col = brandColorMap[v];
+      const txt = brandTextColorMap[v] || (isLightColor(col)?'#1a1714':'#ffffff');
+      o.style.backgroundColor=col;
+      o.style.color=txt;
+      o.style.fontWeight='700';
     }
     if(String(v)===String(saved))o.selected=true;
     el.appendChild(o);
   });
+  if(isBrandSel){
+    updateBrandSelectColor(id);
+  }
 }
 
 function filterMasterBySloc(){updateMaterialCodePreview();}
-function onBrandChange(){updateMaterialCodePreview();}
+function onBrandChange(){
+  updateBrandSelectColor('in-brand');
+  const b = document.getElementById('in-brand')?.value;
+  const badgeEl = document.getElementById('in-brand-badge');
+  if(badgeEl) badgeEl.innerHTML = b ? brandCell(b) : '';
+  const card = document.querySelector('#page-input .card.gap-section');
+  if(card){
+    if(b && brandColorMap[b]){
+      card.style.borderTop = '5px solid ' + brandColorMap[b];
+    } else {
+      card.style.borderTop = '';
+    }
+  }
+  updateMaterialCodePreview();
+}
 function onThickChange(){updateMaterialCodePreview();}
 function onSizeChange(){updateMaterialCodePreview();}
 
@@ -2060,6 +2180,11 @@ function clearInputForm(clearDropdowns=true){
   resetInputTs();
   if(clearDropdowns){
     ['in-brand','in-thick','in-size'].forEach(id=>document.getElementById(id).value='');
+    updateBrandSelectColor('in-brand');
+    const badgeEl = document.getElementById('in-brand-badge');
+    if(badgeEl) badgeEl.innerHTML = '';
+    const card = document.querySelector('#page-input .card.gap-section');
+    if(card) card.style.borderTop = '';
     document.getElementById('in-matcode').value='';
     const slocEl=document.getElementById('in-sloc');
     if(slocEl)slocEl.value=(currentSection==='wip'?'WIP MAT':'BRANDED');
@@ -2235,6 +2360,7 @@ function updateOutputKpis(){
 
 function filterOutput(){
   const brand=document.getElementById('out-brand').value;
+  updateBrandSelectColor('out-brand');
   const thick=document.getElementById('out-thick').value;
   const size=document.getElementById('out-size').value;
   const lot=(document.getElementById('out-lot')?.value||'').trim();
@@ -2261,6 +2387,7 @@ function filterOutput(){
 
 function clearOutputSearch(){
   ['out-brand','out-thick','out-size','out-lot'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  updateBrandSelectColor('out-brand');
   const sortEl = document.getElementById('out-sort');
   if(sortEl) sortEl.value='fifo';
   filteredInv=[];selectedLot=null;
@@ -2288,9 +2415,14 @@ function renderLots(){
     const movedTodayBadge = movedTodayElapsed
       ? `<div class="lot-moved-today">⚠️ Moved out today · ${movedTodayElapsed}</div>`
       : '';
-    return`<div class="lot-card ${pcs===0?'empty':''} ${isSelected?'selected':''} ${alertCls}" onclick="${pcs>0?'selectLot('+i+')':''}">
-      ${brandColorMap[r.BRAND]?`<div style="position:absolute;top:0;left:0;right:0;height:4px;background:${brandColorMap[r.BRAND]};border-radius:var(--r-md) var(--r-md) 0 0"></div>`:''}
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px;margin-top:${brandColorMap[r.BRAND]?'4px':'0'}">
+    const bColor = brandColorMap[r.BRAND];
+    const topBar = bColor ? `<div style="position:absolute;top:0;left:0;right:0;height:5px;background:${bColor};border-radius:var(--r-md) var(--r-md) 0 0"></div>` : '';
+    const borderStyle = isSelected
+      ? (bColor ? `border:2px solid ${bColor};box-shadow:0 0 0 2px ${bColor}40, var(--shadow-md);background:var(--amber-lt);` : '')
+      : (bColor ? `border-top:5px solid ${bColor};` : '');
+    return`<div class="lot-card ${pcs===0?'empty':''} ${isSelected?'selected':''} ${alertCls}" style="${borderStyle}" onclick="${pcs>0?'selectLot('+i+')':''}">
+      ${topBar}
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px;margin-top:${bColor?'4px':'0'}">
         <div class="lot-no-label">LOT / STACK NO.</div>
       </div>
       <div class="lot-no">${r.LOT_NO}</div>
@@ -2313,9 +2445,14 @@ function renderLots(){
 function selectLot(i){
   selectedLot=filteredInv[i];if(Number(selectedLot.PIECES_REMAINING)===0)return;
   renderLots();const card=document.getElementById('dispatchCard');card.style.display='block';
+  if(selectedLot.BRAND && brandColorMap[selectedLot.BRAND]){
+    card.style.borderTop = '5px solid ' + brandColorMap[selectedLot.BRAND];
+  } else {
+    card.style.borderTop = '';
+  }
   document.getElementById('dispatch-code').textContent=selectedLot.MATERIAL_CODE;
   const lotText = currentSection === 'wip' ? '' : ' · Lot ' + selectedLot.LOT_NO;
-  document.getElementById('dispatch-info').textContent=selectedLot.BRAND+lotText+' · '+selectedLot.THICKNESS+'mm · '+selectedLot.SIZE;
+  document.getElementById('dispatch-info').innerHTML=brandCell(selectedLot.BRAND) + (currentSection === 'wip' ? '' : ' &middot; <b>Lot ' + selectedLot.LOT_NO + '</b>') + ' &middot; ' + selectedLot.THICKNESS + 'mm &middot; ' + selectedLot.SIZE;
   document.getElementById('dispatch-avail').value=Number(selectedLot.PIECES_REMAINING)+' pcs';
   document.getElementById('dispatch-pcs').value='';document.getElementById('dispatchBtn').disabled=true;
   document.getElementById('dispatchPreview').style.display='none';
@@ -2865,17 +3002,6 @@ function renderHistoryCharts(historyRows) {
   });
 }
 
-async function fixZeroSqmNa(){
-  showToast('Recalculating zero SQM/NA rows…','info');
-  try{
-    const res = await api('recalculateZeroSqm');
-    const msg = 'Fixed: ' + (res.inputs||0) + ' input rows, ' + (res.outputs||0) + ' output rows, ' + (res.stock||0) + ' stock rows' +
-                (res.errors&&res.errors.length?' | Skipped: '+res.errors.length:'');
-    showToast(msg, 'success');
-    await loadStockViewer();
-  } catch(e) { showToast('Fix failed: '+e.message,'error'); }
-}
-
 async function loadReports(){
   const from=document.getElementById('rpt-from').value;const to=document.getElementById('rpt-to').value;
   if(!from||!to){showToast('Select a date range','error');return;}
@@ -2978,11 +3104,13 @@ function applyMovementFilters(){
   const size  = document.getElementById('rpt-mov-f-size')?.value||'';
   const thick = document.getElementById('rpt-mov-f-thick')?.value||'';
   const lot   = (document.getElementById('rpt-mov-f-lot')?.value||'').trim();
+  const matcode = (document.getElementById('rpt-mov-f-matcode')?.value||'').trim().toLowerCase();
   const filtered = reportMovementsCache.filter(r =>
     (!brand || r.BRAND===brand) &&
     (!size  || String(r.SIZE||'')===size) &&
     (!thick || String(r.THICKNESS||'')===thick) &&
-    (!lot   || String(r.LOT_NO||'').trim()===lot)
+    (!lot   || String(r.LOT_NO||'').trim()===lot) &&
+    (!matcode || String(r.MATERIAL_CODE||'').toLowerCase().includes(matcode))
   );
   renderMovementRows(filtered);
   renderMovementCharts(filtered);
@@ -3082,6 +3210,7 @@ function applyInputFilters(){
   const size  = document.getElementById('rpt-in-f-size')?.value||'';
   const thick = document.getElementById('rpt-in-f-thick')?.value||'';
   const lot   = (document.getElementById('rpt-in-f-lot')?.value||'').trim();
+  const matcode = (document.getElementById('rpt-in-f-matcode')?.value||'').trim().toLowerCase();
   const sort  = document.getElementById('rpt-in-sort')?.value||'ts-desc';
   let rows = reportInputsCache.filter(r=>
     (!brand || r.BRAND===brand) &&
@@ -3108,6 +3237,7 @@ function applyOutputFilters(){
   const size  = document.getElementById('rpt-out-f-size')?.value||'';
   const thick = document.getElementById('rpt-out-f-thick')?.value||'';
   const lot   = (document.getElementById('rpt-out-f-lot')?.value||'').trim();
+  const matcode = (document.getElementById('rpt-out-f-matcode')?.value||'').trim().toLowerCase();
   const sort  = document.getElementById('rpt-out-sort')?.value||'ts-desc';
   let rows = reportOutputsCache.filter(r=>
     (!brand || r.BRAND===brand) &&
@@ -3134,6 +3264,7 @@ function applyHistoryFilters(){
   const thick = document.getElementById('rpt-hist-f-thick')?.value||'';
   const type  = document.getElementById('rpt-hist-f-type')?.value||'';
   const lot   = (document.getElementById('rpt-hist-f-lot')?.value||'').trim();
+  const matcode = (document.getElementById('rpt-hist-f-matcode')?.value||'').trim().toLowerCase();
   const sort  = document.getElementById('rpt-hist-sort')?.value||'ts-asc';
   let rows = reportHistoryCache.filter(r=>{
     const rt=r.TYPE||(r.PIECES_IN!==undefined?'INPUT':'OUTPUT');
@@ -3150,7 +3281,7 @@ function applyHistoryFilters(){
   renderHistoryCharts(rows);
 }
 function clearHistoryFilters(){
-  ['rpt-hist-f-brand','rpt-hist-f-size','rpt-hist-f-thick','rpt-hist-f-type','rpt-hist-f-lot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['rpt-hist-f-brand','rpt-hist-f-size','rpt-hist-f-thick','rpt-hist-f-type','rpt-hist-f-lot','rpt-hist-f-matcode'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const s=document.getElementById('rpt-hist-sort');if(s)s.value='ts-asc';
   renderHistoryRows(reportHistoryCache);
   renderHistoryCharts(reportHistoryCache);
@@ -3185,7 +3316,7 @@ async function loadRecentInputs(){
   clearRiFilters();
   try{
     const data = await api('getSummary',{from,to});
-    riRowsCache = (data.inputs||[]).slice().reverse();
+    riRowsCache = (data.inputs||[]).slice().sort((a,b) => String(b.Timestamp||'').localeCompare(String(a.Timestamp||'')));
     if (currentSection === 'wip') {
       riRowsCache = riRowsCache.filter(r=>String(r.LOT_NO).trim() === '100');
     }
@@ -4036,7 +4167,7 @@ async function loadRecentOutputs(){
   clearRoFilters();
   try{
     const data = await api('getSummary',{from,to});
-    roRowsCache = (data.outputs||[]).slice().reverse();
+    roRowsCache = (data.outputs||[]).slice().sort((a,b) => String(b.Timestamp||'').localeCompare(String(a.Timestamp||'')));
     if (currentSection === 'wip') {
       roRowsCache = roRowsCache.filter(r=>String(r.LOT_NO).trim() === '100');
     }
@@ -4169,37 +4300,6 @@ function expandEditLogs(prefix){
   if(refreshBtn)refreshBtn.style.display='';
 }
 
-// ADD new reconcile function:
-let reconcileRunning=false;
-async function triggerReconcile(){
-  if(reconcileRunning){showToast('Reconcile already running…','info');return;}
-  reconcileRunning=true;
-  const btn=document.getElementById('reconcileBtn');
-  if(btn){btn.disabled=true;btn.textContent='⏳ Reconciling…';}
-  try{
-    const result=await api('reconcileCurrentStock');
-    if(result.corrections>0){
-      showToast('✅ Fixed '+result.corrections+' stock mismatches!','success');
-    }else{
-      showToast('✅ Stock accurate — no corrections needed','success');
-    }
-    await loadStockViewer();
-    if(document.getElementById('page-output').classList.contains('active'))loadInventory();
-    const panel=document.getElementById('reconcileResultPanel');
-    if(panel){
-      if(result.details&&result.details.length>0){
-        panel.style.display='block';
-        panel.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:6px">🔧 Reconcile fixed '+result.corrections+' rows at '+new Date().toLocaleTimeString()+'</div>'+
-          result.details.map(d=>'<div style="font-size:11px;color:var(--text2);padding:2px 0;border-bottom:1px solid var(--border2)">'+escapeHtml(d)+'</div>').join('');
-      }else{
-        panel.style.display='none';
-      }
-    }
-  }catch(e){showToast('Reconcile failed: '+e.message,'error');}
-  reconcileRunning=false;
-  if(btn){btn.disabled=false;btn.textContent='🔧 Reconcile';}
-}
- 
 function escapeHtml(str){
   return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
